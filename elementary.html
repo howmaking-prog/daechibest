@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>초등부 | 대치베스트 어학원</title>
+  <meta name="description" content="대치베스트 어학원 초등부 커리큘럼, 시간표, 공지사항" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body data-page="elementary">
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" data-bind="logoText">대</span>
+        <span class="brand-name" data-bind="academyName">대치베스트 어학원</span>
+        <span class="brand-dept" data-dept-label>초등부</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="메뉴 열기">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-wrap" id="navWrap">
+        <ul class="nav-list">
+          <li><a href="index.html">홈</a></li>
+          <li><a href="index.html#about">학원소개</a></li>
+          <li><a href="index.html#features">특징</a></li>
+          <li class="has-sub">
+            <a class="is-active" href="elementary.html">커리큘럼</a>
+            <ul class="sub-nav">
+              <li><a class="is-active" href="elementary.html">초등부</a></li>
+              <li><a href="middle.html">중등부</a></li>
+              <li><a href="high.html">고등부</a></li>
+            </ul>
+          </li>
+          <li><a href="index.html#contact">오시는 길</a></li>
+        </ul>
+        <a class="header-cta" data-phone-link href="tel:02-555-1212">상담 문의</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="dept-hero" aria-label="초등부 배너">
+      <div class="slider" id="slider"></div>
+      <button class="slider-btn prev" id="sliderPrev" type="button" aria-label="이전 배너">‹</button>
+      <button class="slider-btn next" id="sliderNext" type="button" aria-label="다음 배너">›</button>
+      <div class="slider-dots" id="sliderDots"></div>
+    </section>
+
+    <section class="dept-board" id="board">
+      <div class="dept-board-inner">
+        <div class="board-grid">
+          <article class="timetable-col">
+            <div class="board-head">
+              <h2>시간표</h2>
+              <a class="more-link" id="timeMore" href="#schedulePanel">더보기 &gt;</a>
+            </div>
+            <ul class="board-list" id="timetableList"></ul>
+          </article>
+          <article class="notice-col">
+            <div class="board-head">
+              <h2>공지사항</h2>
+              <a class="more-link" id="noticeMore" href="#noticeList">더보기 &gt;</a>
+            </div>
+            <ul class="board-list" id="noticeList"></ul>
+          </article>
+          <div class="schedule-panel" id="schedulePanel"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">
+          <span class="brand-mark" data-bind="logoText">대</span>
+          <strong data-bind="academyName">대치베스트 어학원</strong>
+        </div>
+        <p data-bind="address">서울특별시 강남구 대치동 (대치역 인근)</p>
+        <p data-bind="phone">02-555-1212</p>
+      </div>
+      <div>
+        <h4>바로가기</h4>
+        <ul>
+          <li><a href="elementary.html">초등부</a></li>
+          <li><a href="middle.html">중등부</a></li>
+          <li><a href="high.html">고등부</a></li>
+          <li><a href="index.html#contact">오시는 길</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>운영시간</h4>
+        <p data-bind="hours">평일 13:00 – 22:00
+토요일 10:00 – 18:00
+일요일·공휴일 휴무</p>
+      </div>
+    </div>
+    <p class="copyright">© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</p>
+  </footer>
+
+  <button class="admin-fab" id="adminOpen" aria-label="관리자 페이지 열기">
+    <span class="admin-fab-tip">관리자</span>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M19.4 13a7.8 7.8 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a7.7 7.7 0 0 0-1.7-1L15 3h-6l-.4 2.5a7.7 7.7 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7.8 7.8 0 0 0 .1 2l-2 1.5 2 3.5 2.4-1a7.7 7.7 0 0 0 1.7 1L9 21h6l.4-2.5a7.7 7.7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5Z" stroke="currentColor" stroke-width="1.8"/>
+    </svg>
+  </button>
+
+  <div class="admin-overlay" id="adminOverlay">
+    <aside class="admin-panel" role="dialog" aria-labelledby="adminTitle">
+      <div class="admin-head">
+        <div>
+          <h2 id="adminTitle">이 페이지 내용 수정</h2>
+          <p>배너와 공지 문구를 고친 뒤 저장하면 이 학년에 바로 반영됩니다.</p>
+        </div>
+        <button class="icon-btn" id="adminClose" aria-label="닫기">×</button>
+      </div>
+      <form class="admin-body" id="adminForm">
+        <div id="curriculumForm">
+          <section class="admin-section">
+            <h3>학원 기본 정보</h3>
+            <div class="field"><label>학원 이름</label><input name="academyName" maxlength="30" /></div>
+            <div class="field"><label>전화번호</label><input name="phone" /></div>
+          </section>
+          <section class="admin-section">
+            <h3>배너 1</h3>
+            <div class="field"><label>제목</label><input name="slide1Title" /></div>
+            <div class="field"><label>설명</label><textarea name="slide1Sub"></textarea></div>
+            <div class="field"><label>하단 안내 문구</label><input name="slide1Note" /></div>
+          </section>
+          <section class="admin-section">
+            <h3>배너 2</h3>
+            <div class="field"><label>제목</label><input name="slide2Title" /></div>
+            <div class="field"><label>설명</label><textarea name="slide2Sub"></textarea></div>
+            <div class="field"><label>하단 안내 문구</label><input name="slide2Note" /></div>
+          </section>
+          <section class="admin-section">
+            <h3>배너 3</h3>
+            <div class="field"><label>제목</label><input name="slide3Title" /></div>
+            <div class="field"><label>설명</label><textarea name="slide3Sub"></textarea></div>
+            <div class="field"><label>하단 안내 문구</label><input name="slide3Note" /></div>
+          </section>
+          <section class="admin-section">
+            <h3>공지사항</h3>
+            <div class="field"><label>공지 1 제목</label><input name="notice1Title" /></div>
+            <div class="field"><label>공지 1 날짜</label><input name="notice1Date" /></div>
+            <label class="field-check"><input type="checkbox" name="notice1Important" /> 중요 표시</label>
+            <div class="field"><label>공지 2 제목</label><input name="notice2Title" /></div>
+            <div class="field"><label>공지 2 날짜</label><input name="notice2Date" /></div>
+            <label class="field-check"><input type="checkbox" name="notice2Important" /> 중요 표시</label>
+            <div class="field"><label>공지 3 제목</label><input name="notice3Title" /></div>
+            <div class="field"><label>공지 3 날짜</label><input name="notice3Date" /></div>
+            <label class="field-check"><input type="checkbox" name="notice3Important" /> 중요 표시</label>
+            <div class="field"><label>공지 4 제목</label><input name="notice4Title" /></div>
+            <div class="field"><label>공지 4 날짜</label><input name="notice4Date" /></div>
+            <label class="field-check"><input type="checkbox" name="notice4Important" /> 중요 표시</label>
+            <div class="field"><label>공지 5 제목</label><input name="notice5Title" /></div>
+            <div class="field"><label>공지 5 날짜</label><input name="notice5Date" /></div>
+            <label class="field-check"><input type="checkbox" name="notice5Important" /> 중요 표시</label>
+          </section>
+        </div>
+      </form>
+      <div class="admin-foot">
+        <button class="reset-btn" id="resetBtn" type="button">처음 내용으로</button>
+        <button class="save-btn" id="saveBtn" type="button">저장하고 화면에 반영</button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="notice-modal" id="noticeModal">
+    <div class="notice-card">
+      <p class="section-kicker" data-notice-kicker>공지사항</p>
+      <h3 data-notice-title></h3>
+      <p data-notice-date></p>
+      <p data-notice-body></p>
+      <button class="save-btn" id="noticeClose" type="button" style="margin-top:18px;">닫기</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">저장되었습니다.</div>
+  <script src="js/common.js"></script>
+  <script src="js/curriculum.js"></script>
+</body>
+</html>
