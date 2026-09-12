@@ -14,6 +14,14 @@ const DEFAULT_CONTENT = {
   feature2Desc: "입학 상담부터 월간 성취 점검까지, 실력 변화를 숫자와 피드백으로 확인할 수 있게 운영합니다.",
   feature3Title: "내신과 수능의 균형",
   feature3Desc: "학교 시험과 장기 입시를 따로 두지 않습니다. 학년별 우선순위를 분명히 해 시간을 낭비하지 않습니다.",
+  address: "서울 강남구 선릉로 64길 11-2, 6층",
+  phone: "02-556-3510",
+  hours: "평일: 14:00 ~ 22:00\n토요일: 10:00 ~ 18:00\n일요일 휴무",
+  directions: "서울 강남구 선릉로 64길 11-2, 6층에 있습니다. 방문 전 전화로 상담 시간을 예약해 주세요."
+};
+
+// 예전에 저장해 둔 임시 연락처는 새 기본값으로 바꿉니다.
+const LEGACY_CONTACT = {
   address: "서울특별시 강남구 대치동 (대치역 인근)",
   phone: "02-555-1212",
   hours: "평일 13:00 – 22:00\n토요일 10:00 – 18:00\n일요일·공휴일 휴무",
@@ -28,7 +36,11 @@ const loadContent = () => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...DEFAULT_CONTENT };
     const saved = JSON.parse(raw);
-    return { ...DEFAULT_CONTENT, ...saved };
+    const merged = { ...DEFAULT_CONTENT, ...saved };
+    Object.keys(LEGACY_CONTACT).forEach((key) => {
+      if (saved[key] === LEGACY_CONTACT[key]) merged[key] = DEFAULT_CONTENT[key];
+    });
+    return merged;
   } catch (error) {
     console.error("저장 내용을 읽는 중 문제가 발생했습니다.", error);
     return { ...DEFAULT_CONTENT };
