@@ -1,6 +1,7 @@
 // 학원 공통 콘텐츠. 관리자가 저장하면 LocalStorage 값이 기본값을 덮어씁니다.
 const STORAGE_KEY = "daechibest_homepage";
-const DEFAULT_LOGO = "img/logo.png";
+const ASSET_VER = "20260912-2208";
+const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const DEFAULT_CONTENT = {
   academyName: "대치베스트 어학원",
   logoText: "대",
@@ -45,7 +46,12 @@ const $$ = (selector) => [...document.querySelectorAll(selector)];
 // 설정에서 새로 고른 로고. null이면 기존 값을 유지합니다.
 let pendingLogoImage = null;
 
-const logoSrc = (data) => data && data.logoImage ? data.logoImage : DEFAULT_LOGO;
+const logoSrc = (data) => {
+  const src = data && data.logoImage ? data.logoImage : DEFAULT_LOGO;
+  // 예전에 저장된 경로에도 캐시 방지용 버전을 붙입니다.
+  if (src === "img/logo.png") return DEFAULT_LOGO;
+  return src;
+};
 
 const applyLogos = (data) => {
   const src = logoSrc(data);
