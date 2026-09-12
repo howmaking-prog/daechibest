@@ -1,6 +1,6 @@
 // 학원 공통 콘텐츠. 관리자가 저장하면 LocalStorage 값이 기본값을 덮어씁니다.
 const STORAGE_KEY = "daechibest_homepage";
-const ASSET_VER = "20260912-2208";
+const ASSET_VER = "20260912-2210";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const DEFAULT_CONTENT = {
   academyName: "대치베스트 어학원",
@@ -10,14 +10,14 @@ const DEFAULT_CONTENT = {
   heroSub: "초등부터 고등까지, 실력과 자신감을 함께 키우는 대치베스트 어학원입니다. 소수 정예 수업과 체계적인 레벨 관리로 한 명 한 명의 성장을 책임집니다.",
   heroCta: "상담 예약하기",
   // 메인 오른쪽 패널 문구. 관리자 설정에서 바꿀 수 있습니다.
-  heroPanelTitle: "Trust. Precision. Growth.",
+  heroPanelTitle: "Trust. Proven. Growth.",
   heroPanelSub: "대치동 영어 교육의 기본을 지키며, 학생의 다음 단계를 설계합니다.",
   heroStat1Title: "초·중·고",
   heroStat1Desc: "연계 커리큘럼",
-  heroStat2Title: "소수 정예",
-  heroStat2Desc: "맞춤 밀착 관리",
-  heroStat3Title: "대치동",
-  heroStat3Desc: "검증된 입지",
+  heroStat2Title: "콘텐츠",
+  heroStat2Desc: "연구 시스템",
+  heroStat3Title: "강사진",
+  heroStat3Desc: "맞춤 밀착관리",
   aboutTitle: "실력의 기본을 세우는 학원",
   aboutText: "대치베스트 어학원은 초·중·고 영어를 한 흐름으로 가르치는 대치동 영어 전문 학원입니다.\n\n문법, 독해, 어휘, 작문을 학년별 목표에 맞게 나누고, 수업 이후 복습과 클리닉까지 연결해 성적이 쌓이는 구조를 만듭니다.",
   feature1Title: "소수 정예 맞춤 수업",
