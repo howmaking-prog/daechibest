@@ -5,11 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <script>
-    // GitHub Pages에서 /daechibest 뒤에 슬래시가 없으면 모바일에서 파일이 안 불러와집니다.
+    // GitHub Pages 모바일 캐시와 슬래시 없는 주소를 바로잡습니다.
     (() => {
       const path = window.location.pathname;
       if (/\/daechibest$/i.test(path)) {
         window.location.replace(path + "/" + window.location.search + window.location.hash);
+        return;
+      }
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("b") !== "5") {
+        params.set("b", "5");
+        window.location.replace(path + "?" + params.toString() + window.location.hash);
       }
     })();
   </script>
@@ -20,14 +26,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site.css?v=20260912-2210" />
+  <link rel="stylesheet" href="css/site-v5.css" />
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="#home">
         <span class="brand-mark">
-          <img data-logo src="img/logo.png?v=20260912-2210" alt="대치베스트 어학원 로고" />
+          <img data-logo src="img/logo.png?v=5" alt="대치베스트 어학원 로고" />
         </span>
         <span class="brand-name" data-bind="academyName">대치베스트 어학원</span>
       </a>
@@ -224,7 +230,7 @@
       <div>
         <div class="footer-brand">
           <span class="brand-mark">
-            <img data-logo src="img/logo.png?v=20260912-2210" alt="대치베스트 어학원 로고" />
+            <img data-logo src="img/logo.png?v=5" alt="대치베스트 어학원 로고" />
           </span>
           <strong data-bind="academyName">대치베스트 어학원</strong>
         </div>
@@ -277,7 +283,7 @@
           <div class="field">
             <label>로고 이미지 <span class="hint">헤더와 푸터에 표시됩니다</span></label>
             <div class="logo-upload">
-              <img id="logoPreview" class="logo-preview" src="img/logo.png?v=20260912-2210" alt="로고 미리보기" />
+              <img id="logoPreview" class="logo-preview" src="img/logo.png?v=5" alt="로고 미리보기" />
               <div class="logo-upload-actions">
                 <label class="file-btn">
                   이미지 올리기
@@ -410,6 +416,6 @@
 
   <div class="toast" id="toast">저장되었습니다. 메인 화면에 반영했어요.</div>
 
-  <script src="js/common.js?v=20260912-2210"></script>
+  <script src="js/app-v5.js"></script>
 </body>
 </html>
