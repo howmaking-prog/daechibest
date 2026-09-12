@@ -1,8 +1,10 @@
 // 학원 공통 콘텐츠. 관리자가 저장하면 LocalStorage 값이 기본값을 덮어씁니다.
 const STORAGE_KEY = "daechibest_homepage";
+const DEFAULT_LOGO = "img/logo.png";
 const DEFAULT_CONTENT = {
   academyName: "대치베스트 어학원",
   logoText: "대",
+  logoImage: DEFAULT_LOGO,
   heroSlogan: "대치동의 기준이 되는 영어",
   heroSub: "초등부터 고등까지, 실력과 자신감을 함께 키우는 대치베스트 어학원입니다. 소수 정예 수업과 체계적인 레벨 관리로 한 명 한 명의 성장을 책임집니다.",
   heroCta: "상담 예약하기",
@@ -30,6 +32,21 @@ const LEGACY_CONTACT = {
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+// 설정에서 새로 고른 로고. null이면 기존 값을 유지합니다.
+let pendingLogoImage = null;
+
+const logoSrc = (data) => data && data.logoImage ? data.logoImage : DEFAULT_LOGO;
+
+const applyLogos = (data) => {
+  const src = logoSrc(data);
+  $$("[data-logo]").forEach((img) => {
+    img.src = src;
+    img.alt = `${data.academyName || "대치베스트 어학원"} 로고`;
+  });
+  const preview = $("#logoPreview");
+  if (preview) preview.src = src;
+};
 
 const loadContent = () => {
   try {
@@ -62,8 +79,11 @@ const applyContent = (data) => {
   $$("[data-bind]").forEach((el) => {
     const key = el.dataset.bind;
     if (!Object.prototype.hasOwnProperty.call(data, key)) return;
+    if (key === "logoImage") return;
     el.textContent = data[key];
   });
+
+  applyLogos(data);
 
   $$("[data-phone-link]").forEach((el) => {
     el.href = `tel:${String(data.phone || "").replace(/\s+/g, "")}`;
@@ -86,8 +106,14 @@ const fillAdminForm = (data) => {
   if (!form) return;
   Object.keys(DEFAULT_CONTENT).forEach((key) => {
     const field = form.elements[key];
-    if (field) field.value = data[key] || "";
+    if (!field || field.type === "file") return;
+    field.value = data[key] || "";
   });
+  pendingLogoImage = null;
+  const preview = $("#logoPreview");
+  if (preview) preview.src = logoSrc(data);
+  const file = $("#logoFile");
+  if (file) file.value = "";
 };
 
 const readAdminForm = () => {
@@ -96,10 +122,44 @@ const readAdminForm = () => {
   if (!form) return next;
   Object.keys(DEFAULT_CONTENT).forEach((key) => {
     const field = form.elements[key];
-    if (field) next[key] = String(field.value).trim();
+    if (!field || field.type === "file") return;
+    next[key] = String(field.value).trim();
   });
+  if (pendingLogoImage !== null) next.logoImage = pendingLogoImage;
   return next;
 };
+
+const readLogoFile = (file) => new Promise((resolve, reject) => {
+  // 올린 이미지는 저장 용량을 위해 작게 맞춘 뒤 사용합니다.
+  try {
+    if (!file || !file.type.startsWith("image/")) {
+      reject(new Error("이미지 파일만 올릴 수 있습니다."));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const max = 256;
+        const scale = Math.min(1, max / Math.max(image.width, image.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      image.onerror = () => reject(new Error("이미지를 읽지 못했습니다."));
+      image.src = String(reader.result);
+    };
+    reader.onerror = () => reject(new Error("파일을 읽지 못했습니다."));
+    reader.readAsDataURL(file);
+  } catch (error) {
+    reject(error);
+  }
+});
 
 const showToast = (message) => {
   const toast = $("#toast");
@@ -146,7 +206,37 @@ const initNav = () => {
   });
 };
 
+const initLogoAdmin = () => {
+  const file = $("#logoFile");
+  const clearBtn = $("#logoClear");
+  const preview = $("#logoPreview");
+  if (file) {
+    file.addEventListener("change", () => {
+      const picked = file.files && file.files[0];
+      if (!picked) return;
+      readLogoFile(picked)
+        .then((dataUrl) => {
+          pendingLogoImage = dataUrl;
+          if (preview) preview.src = dataUrl;
+          showToast("로고를 올렸습니다. 저장을 누르면 반영됩니다.");
+        })
+        .catch((error) => {
+          console.error("로고를 읽는 중 문제가 발생했습니다.", error);
+          showToast(error.message || "로고를 올리지 못했습니다.");
+        });
+    });
+  }
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      pendingLogoImage = DEFAULT_LOGO;
+      if (preview) preview.src = DEFAULT_LOGO;
+      if (file) file.value = "";
+    });
+  }
+};
+
 const initAdmin = () => {
+  initLogoAdmin();
   const openBtn = $("#adminOpen");
   const closeBtn = $("#adminClose");
   const overlay = $("#adminOverlay");
@@ -186,6 +276,9 @@ const initAdmin = () => {
       const ok = window.confirm("처음 기본 내용으로 되돌릴까요? 저장 버튼을 눌러야 화면에 반영됩니다.");
       if (!ok) return;
       fillAdminForm(DEFAULT_CONTENT);
+      pendingLogoImage = DEFAULT_LOGO;
+      const preview = $("#logoPreview");
+      if (preview) preview.src = DEFAULT_LOGO;
       if (typeof window.resetCurriculumAdmin === "function") window.resetCurriculumAdmin();
     });
   }
