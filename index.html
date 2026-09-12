@@ -59,12 +59,21 @@
           </div>
         </div>
         <aside class="hero-panel">
-          <div class="hero-panel-title">Trust. Precision. Growth.</div>
-          <p>대치동 영어 교육의 기본을 지키며, 학생의 다음 단계를 설계합니다.</p>
+          <div class="hero-panel-title" data-bind="heroPanelTitle">Trust. Precision. Growth.</div>
+          <p data-bind="heroPanelSub">대치동 영어 교육의 기본을 지키며, 학생의 다음 단계를 설계합니다.</p>
           <div class="hero-stats">
-            <div class="stat"><strong>초·중·고</strong><span>연계 커리큘럼</span></div>
-            <div class="stat"><strong>소수 정예</strong><span>맞춤 밀착 관리</span></div>
-            <div class="stat"><strong>대치동</strong><span>검증된 입지</span></div>
+            <div class="stat">
+              <strong data-bind="heroStat1Title">초·중·고</strong>
+              <span data-bind="heroStat1Desc">연계 커리큘럼</span>
+            </div>
+            <div class="stat">
+              <strong data-bind="heroStat2Title">소수 정예</strong>
+              <span data-bind="heroStat2Desc">맞춤 밀착 관리</span>
+            </div>
+            <div class="stat">
+              <strong data-bind="heroStat3Title">대치동</strong>
+              <span data-bind="heroStat3Desc">검증된 입지</span>
+            </div>
           </div>
         </aside>
       </div>
@@ -287,7 +296,43 @@
         </section>
 
         <section class="admin-section">
-          <h3>3. 학원 소개</h3>
+          <h3>3. 메인 오른쪽 패널</h3>
+          <div class="field">
+            <label>패널 제목 <span class="hint">Trust. Precision. Growth. 같은 짧은 문구</span></label>
+            <input name="heroPanelTitle" maxlength="48" />
+          </div>
+          <div class="field">
+            <label>패널 설명</label>
+            <textarea name="heroPanelSub"></textarea>
+          </div>
+          <div class="field">
+            <label>칸 1 제목</label>
+            <input name="heroStat1Title" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>칸 1 설명</label>
+            <input name="heroStat1Desc" maxlength="30" />
+          </div>
+          <div class="field">
+            <label>칸 2 제목</label>
+            <input name="heroStat2Title" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>칸 2 설명</label>
+            <input name="heroStat2Desc" maxlength="30" />
+          </div>
+          <div class="field">
+            <label>칸 3 제목</label>
+            <input name="heroStat3Title" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>칸 3 설명</label>
+            <input name="heroStat3Desc" maxlength="30" />
+          </div>
+        </section>
+
+        <section class="admin-section">
+          <h3>4. 학원 소개</h3>
           <div class="field">
             <label>소개 제목</label>
             <input name="aboutTitle" maxlength="40" />
@@ -299,7 +344,7 @@
         </section>
 
         <section class="admin-section">
-          <h3>4. 핵심 특징 3가지</h3>
+          <h3>5. 핵심 특징 3가지</h3>
           <div class="field">
             <label>특징 1 제목</label>
             <input name="feature1Title" />
@@ -327,7 +372,7 @@
         </section>
 
         <section class="admin-section">
-          <h3>5. 오시는 길 / 연락처</h3>
+          <h3>6. 오시는 길 / 연락처</h3>
           <div class="field">
             <label>주소</label>
             <input name="address" />
@@ -355,6 +400,6 @@
 
   <div class="toast" id="toast">저장되었습니다. 메인 화면에 반영했어요.</div>
 
-  <script src="js/common.js?v=20260912-logo"></script>
+  <script src="js/common.js?v=20260912-stats"></script>
 </body>
 </html>
