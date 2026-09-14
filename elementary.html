@@ -13,8 +13,8 @@
         return;
       }
       const params = new URLSearchParams(window.location.search);
-      if (params.get("b") !== "13") {
-        params.set("b", "13");
+      if (params.get("b") !== "14") {
+        params.set("b", "14");
         window.location.replace(path + "?" + params.toString() + window.location.hash);
       }
     })();
@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site-v13.css" />
+  <link rel="stylesheet" href="css/site-v14.css" />
 </head>
 <body data-page="elementary">
   <header class="site-header">
@@ -192,6 +192,11 @@
             <div class="field"><label>하단 안내 문구</label><input name="slide3Note" /></div>
           </section>
           <section class="admin-section">
+            <h3>시간표</h3>
+            <p class="admin-hint">표의 칼럼 이름(요일, 시간, 수업)과 학기별 수업 내용을 수정합니다. 빈 줄은 저장할 때 빠집니다.</p>
+            <div id="timetableAdminFields"></div>
+          </section>
+          <section class="admin-section">
             <h3>공지사항</h3>
             <div class="field"><label>공지 1 제목</label><input name="notice1Title" /></div>
             <div class="field"><label>공지 1 날짜</label><input name="notice1Date" /></div>
@@ -230,6 +235,6 @@
 
   <div class="toast" id="toast">저장되었습니다.</div>
   <script src="js/app-v6.js"></script>
-  <script src="js/curriculum-v6.js"></script>
+  <script src="js/curriculum-v7.js"></script>
 </body>
 </html>
