@@ -855,6 +855,49 @@ const initNav = () => {
   $$(".header-cta").forEach((link) => {
     link.addEventListener("click", () => nav && nav.classList.remove("open"));
   });
+  initProgramTabs();
+};
+
+// 헤로 하단 탭을 누르면 커리큘럼 카드로 이동하고 잠시 강조합니다.
+const initProgramTabs = () => {
+  const tabs = $$(".program-tab[href^='#']");
+  if (!tabs.length) return;
+
+  const clearFocus = () => {
+    $$(".course-card.is-focused").forEach((card) => card.classList.remove("is-focused"));
+  };
+
+  const focusCard = (id) => {
+    clearFocus();
+    const card = id && document.getElementById(id);
+    if (!card) return;
+    card.classList.add("is-focused");
+    window.setTimeout(() => card.classList.remove("is-focused"), 1600);
+  };
+
+  const scrollToCard = (id) => {
+    const card = document.getElementById(id);
+    if (!card) return;
+    const top = card.getBoundingClientRect().top + window.scrollY - 80;
+    window.scrollTo({ top, behavior: "smooth" });
+    focusCard(id);
+  };
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", (event) => {
+      const href = tab.getAttribute("href") || "";
+      const id = href.slice(1);
+      if (!document.getElementById(id)) return;
+      event.preventDefault();
+      history.pushState(null, "", href);
+      scrollToCard(id);
+    });
+  });
+
+  const hashId = (window.location.hash || "").slice(1);
+  if (hashId && document.getElementById(hashId)?.classList.contains("course-card")) {
+    window.setTimeout(() => scrollToCard(hashId), 80);
+  }
 };
 
 const initLogoAdmin = () => {
