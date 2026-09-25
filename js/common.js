@@ -5,7 +5,7 @@ const TOKEN_KEY = "daechibest_github_token";
 const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_UNLOCK_KEY = "daechibest_admin_ok";
 const ADMIN_PASS_DEFAULT = "best1369";
-const ASSET_VER = "6";
+const ASSET_VER = "7";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
 const REPO_RAW_URL = "https://raw.githubusercontent.com/howmaking-prog/daechibest/main/data/site.json";
@@ -268,21 +268,43 @@ const updateSyncStatus = () => {
   status.classList.toggle("is-off", !connected);
 };
 
+const withLogoVersion = (path, stamp) => `${path}?v=${stamp || ASSET_VER}`;
+
 const logoSrc = (data) => {
-  const src = data && data.logoImage ? data.logoImage : DEFAULT_LOGO;
-  // 예전에 저장된 경로에도 캐시 방지용 버전을 붙입니다.
-  if (src === "img/logo.png") return DEFAULT_LOGO;
+  const src = data && data.logoImage ? String(data.logoImage) : DEFAULT_LOGO;
+  // data URL은 용량이 커서 일부 기기에서 이미지가 깨지므로 파일만 씁니다.
+  if (isDataImage(src) || src === LOGO_FILE_PATH || src.startsWith(`${LOGO_FILE_PATH}?`)) {
+    return withLogoVersion(LOGO_FILE_PATH, src.split("?v=")[1]);
+  }
+  if (src === "img/logo.png" || src.startsWith("img/logo.png?")) return DEFAULT_LOGO;
   return src;
+};
+
+const wireLogoFallback = (img) => {
+  if (!img || img.dataset.logoReady === "1") return;
+  img.dataset.logoReady = "1";
+  img.addEventListener("error", () => {
+    // 커스텀 파일이 없으면 기본 로고로 되돌립니다.
+    if (img.dataset.usingFallback === "1") return;
+    img.dataset.usingFallback = "1";
+    img.src = DEFAULT_LOGO;
+  });
 };
 
 const applyLogos = (data) => {
   const src = logoSrc(data);
   $$("[data-logo]").forEach((img) => {
+    wireLogoFallback(img);
+    img.dataset.usingFallback = "";
     img.src = src;
     img.alt = `${data.academyName || "대치베스트 어학원"} 로고`;
   });
   const preview = $("#logoPreview");
-  if (preview) preview.src = src;
+  if (preview) {
+    wireLogoFallback(preview);
+    preview.dataset.usingFallback = "";
+    preview.src = src;
+  }
 };
 
 const loadContent = () => mergeHomepage(memory.homepage);
@@ -420,6 +442,11 @@ const readLogoFile = (file) => new Promise((resolve, reject) => {
       image.onload = () => {
         const max = 512;
         const scale = Math.min(1, max / Math.max(image.width, image.height));
+        // 이미 작은 PNG는 다시 그리지 않아 가장자리와 투명 영역을 유지합니다.
+        if (scale === 1 && file.type === "image/png") {
+          resolve(String(reader.result));
+          return;
+        }
         const canvas = document.createElement("canvas");
         canvas.width = Math.max(1, Math.round(image.width * scale));
         canvas.height = Math.max(1, Math.round(image.height * scale));

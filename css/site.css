@@ -67,7 +67,7 @@
       width: 48px;
       height: 48px;
       border-radius: 12px;
-      background: #000;
+      background: transparent;
       overflow: hidden;
       flex-shrink: 0;
       box-shadow: 0 8px 20px rgba(11, 28, 51, 0.22);
@@ -75,9 +75,9 @@
     .brand-mark img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover;
       display: block;
-      background: #000;
+      background: transparent;
     }
     .brand-name {
       font-size: 18px;
@@ -718,8 +718,8 @@
       width: 64px;
       height: 64px;
       border-radius: 12px;
-      object-fit: contain;
-      background: #f3f5f8;
+      object-fit: cover;
+      background: transparent;
       flex-shrink: 0;
     }
     .logo-upload-actions { display: grid; gap: 8px; }
