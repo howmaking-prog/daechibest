@@ -13,8 +13,8 @@
         return;
       }
       const params = new URLSearchParams(window.location.search);
-      if (params.get("b") !== "18") {
-        params.set("b", "18");
+      if (params.get("b") !== "19") {
+        params.set("b", "19");
         window.location.replace(path + "?" + params.toString() + window.location.hash);
       }
     })();
@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site-v18.css" />
+  <link rel="stylesheet" href="css/site-v19.css" />
 </head>
 <body data-page="elementary">
   <header class="site-header">
@@ -120,16 +120,11 @@
 일요일 휴무</p>
       </div>
     </div>
-    <p class="copyright">© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</p>
+    <p class="copyright">
+      <span>© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</span>
+      <button type="button" class="admin-footer-link" id="adminOpen">관리자</button>
+    </p>
   </footer>
-
-  <button class="admin-fab" id="adminOpen" aria-label="관리자 페이지 열기">
-    <span class="admin-fab-tip">관리자</span>
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8"/>
-      <path d="M19.4 13a7.8 7.8 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a7.7 7.7 0 0 0-1.7-1L15 3h-6l-.4 2.5a7.7 7.7 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7.8 7.8 0 0 0 .1 2l-2 1.5 2 3.5 2.4-1a7.7 7.7 0 0 0 1.7 1L9 21h6l.4-2.5a7.7 7.7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5Z" stroke="currentColor" stroke-width="1.8"/>
-    </svg>
-  </button>
 
   <div class="admin-overlay" id="adminOverlay">
     <aside class="admin-panel" role="dialog" aria-labelledby="adminTitle">
@@ -149,6 +144,10 @@
             <input name="githubToken" type="password" autocomplete="off" placeholder="ghp_ 로 시작하는 값" />
             <a class="token-link" href="https://github.com/settings/tokens/new?scopes=public_repo&description=daechibest" target="_blank" rel="noopener noreferrer">토큰 만들기 (Generate token 클릭)</a>
             <div class="sync-status is-off" id="syncStatus">미연결 · 토큰을 붙여넣어야 다른 기기에도 저장됩니다.</div>
+          </div>
+          <div class="field">
+            <label>관리자 비밀번호 <span class="hint">바꿀 때만 입력 · 처음값은 best1369</span></label>
+            <input name="adminPassword" type="password" autocomplete="new-password" placeholder="변경할 때만 입력" />
           </div>
         </section>
         <div id="curriculumForm">
@@ -210,7 +209,7 @@
   </div>
 
   <div class="toast" id="toast">저장되었습니다.</div>
-  <script src="js/app-v8.js"></script>
+  <script src="js/app-v9.js"></script>
   <script src="js/curriculum-v10.js"></script>
 </body>
 </html>
