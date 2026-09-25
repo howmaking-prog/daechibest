@@ -227,6 +227,7 @@
       border-radius: 28px;
       padding: 32px 28px;
       backdrop-filter: blur(12px);
+      scroll-margin-top: calc(var(--header-h) + 16px);
     }
     .hero-panel-title {
       font-family: "Playfair Display", serif;
@@ -244,14 +245,26 @@
     }
     .stat {
       background: rgba(7, 18, 34, 0.35);
+      border: 1px solid transparent;
       border-radius: 16px;
-      padding: 16px 10px;
+      padding: 16px 8px;
       text-align: center;
       min-width: 0;
     }
+    /* 통계 칸을 학년 페이지 링크로 씁니다. */
+    a.stat {
+      color: inherit;
+      text-decoration: none;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+    a.stat:hover {
+      background: rgba(7, 18, 34, 0.55);
+      border-color: rgba(196, 163, 90, 0.38);
+      transform: translateY(-2px);
+    }
     .stat strong {
       display: block;
-      font-size: 22px;
+      font-size: 20px;
       color: var(--gold-soft);
       letter-spacing: -0.03em;
       word-break: keep-all;
@@ -259,10 +272,13 @@
     .stat span {
       display: block;
       margin-top: 6px;
-      font-size: 12px;
+      font-family: "Playfair Display", serif;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       color: rgba(255,255,255,0.65);
       word-break: keep-all;
-      line-height: 1.4;
+      line-height: 1.35;
     }
     /* 공통 섹션 */
     section { padding: 96px 24px; scroll-margin-top: calc(var(--header-h) + 8px); }
@@ -363,49 +379,6 @@
       letter-spacing: -0.03em;
     }
     .feature-card p { color: var(--muted); font-size: 15px; }
-
-    /* 커리큘럼 */
-    .curriculum { background: var(--navy-950); color: #fff; }
-    .curriculum .section-kicker { color: var(--gold-soft); }
-    .curriculum .section-head h2 { color: #fff; }
-    .curriculum .section-head p { color: rgba(255,255,255,0.68); }
-    .curriculum-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-    }
-    .course-card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 22px;
-      padding: 28px;
-      min-height: 280px;
-      scroll-margin-top: calc(var(--header-h) + 16px);
-    }
-    .course-card em {
-      display: inline-block;
-      font-style: normal;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--navy-900);
-      background: var(--gold);
-      border-radius: 999px;
-      padding: 4px 10px;
-      margin-bottom: 16px;
-    }
-    /* 탭에서 쓰던 영문 표기를 커리큘럼 카드에도 남깁니다. */
-    .course-en {
-      display: block;
-      font-family: "Playfair Display", serif;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--gold-soft);
-      margin-bottom: 6px;
-    }
-    .course-card h3 { font-size: 24px; margin-bottom: 12px; }
-    .course-card p { color: rgba(255,255,255,0.72); font-size: 15px; }
 
     /* 오시는 길 */
     .contact-grid {
@@ -782,7 +755,7 @@
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     @media (max-width: 960px) {
-      .hero-inner, .about-grid, .feature-grid, .curriculum-grid, .contact-grid, .footer-inner {
+      .hero-inner, .about-grid, .feature-grid, .contact-grid, .footer-inner {
         grid-template-columns: 1fr;
       }
       .hero {
@@ -866,8 +839,8 @@
       }
       .stat span {
         margin-top: 4px;
-        font-size: clamp(10px, 2.8vw, 11px);
-        letter-spacing: -0.04em;
+        font-size: clamp(8px, 2.4vw, 10px);
+        letter-spacing: 0.02em;
       }
       .time-row-fields {
         grid-template-columns: 1fr;
@@ -906,22 +879,6 @@
       font-size: 14px;
       font-weight: 700;
       white-space: nowrap;
-    }
-
-    .course-card {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    a.course-card:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow);
-    }
-    a.course-card { color: inherit; display: block; }
-    .course-more {
-      display: inline-flex;
-      margin-top: 20px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--gold-soft);
     }
 
     /* 학년 페이지 배너 슬라이드 */

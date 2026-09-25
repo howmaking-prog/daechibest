@@ -332,7 +332,7 @@ const applyGradeHints = () => {
     const names = gradeTabHint(el.dataset.gradeHint);
     el.textContent = names
       ? `지금 시간표 탭: ${names}`
-      : "시간표 학년 탭 이름과 같게 적으면 홈 카드와 설명이 맞습니다.";
+      : "시간표 학년 탭 이름과 같게 적으면 설명이 맞습니다.";
   });
 };
 

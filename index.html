@@ -79,23 +79,24 @@
             <a class="btn-ghost" href="#curriculum" data-bind="heroGhostCta">커리큘럼 보기</a>
           </div>
         </div>
-        <aside class="hero-panel">
+        <aside class="hero-panel" id="curriculum">
           <div class="hero-panel-title" data-bind="heroPanelTitle">Trust. Proven. Growth.</div>
           <p data-bind="heroPanelSub">대치동 영어 교육의 기본을 지키며, 학생의 다음 단계를 설계합니다.</p>
-          <div class="hero-stats">
-            <div class="stat">
-              <strong data-bind="heroStat1Title">초·중·고</strong>
-              <span data-bind="heroStat1Desc">연계 커리큘럼</span>
-            </div>
-            <div class="stat">
-              <strong data-bind="heroStat2Title">콘텐츠</strong>
-              <span data-bind="heroStat2Desc">연구 시스템</span>
-            </div>
-            <div class="stat">
-              <strong data-bind="heroStat3Title">강사진</strong>
-              <span data-bind="heroStat3Desc">맞춤 밀착관리</span>
-            </div>
-          </div>
+          <!-- 헤로 패널 3칸이 초·중·고 유일한 입장입니다. -->
+          <nav class="hero-stats" aria-label="학년 커리큘럼">
+            <a class="stat" href="elementary.html">
+              <strong data-bind="elemName">초등부</strong>
+              <span data-bind="elemEn">ELEMENTARY</span>
+            </a>
+            <a class="stat" href="middle.html">
+              <strong data-bind="middleName">중등부</strong>
+              <span data-bind="middleEn">MIDDLE</span>
+            </a>
+            <a class="stat" href="high.html">
+              <strong data-bind="highName">고등부</strong>
+              <span data-bind="highEn">HIGH SCHOOL</span>
+            </a>
+          </nav>
         </aside>
       </div>
     </section>
@@ -145,39 +146,6 @@
             <h3 data-bind="feature3Title">내신과 수능의 균형</h3>
             <p data-bind="feature3Desc">학교 시험과 장기 입시를 따로 두지 않습니다. 학년별 우선순위를 분명히 해 시간을 낭비하지 않습니다.</p>
           </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="curriculum" id="curriculum">
-      <div class="section-inner">
-        <div class="section-head">
-          <div class="section-kicker">Curriculum</div>
-          <h2 data-bind="curriculumTitle">초등부터 고등까지 이어지는 커리큘럼</h2>
-          <p data-bind="curriculumSub">학년의 전환기에도 수업 방식이 끊기지 않도록, 단계별 목표를 분명히 나눕니다.</p>
-        </div>
-        <div class="curriculum-grid">
-          <a class="course-card" id="course-elem" href="elementary.html">
-            <em data-bind="elemRange">초등 5–6</em>
-            <small class="course-en" data-bind="elemEn">ELEMENTARY</small>
-            <h3 data-bind="elemName">초등부</h3>
-            <p data-bind="elemDesc">읽기의 기초와 어휘 습관을 먼저 세웁니다. 문법 용어보다 문장이 만들어지는 감각을 익혀, 중등 내신으로 자연스럽게 연결합니다.</p>
-            <span class="course-more" data-bind="courseMore">자세히 보기 →</span>
-          </a>
-          <a class="course-card" id="course-middle" href="middle.html">
-            <em data-bind="middleRange">중1–중3</em>
-            <small class="course-en" data-bind="middleEn">MIDDLE</small>
-            <h3 data-bind="middleName">중등부</h3>
-            <p data-bind="middleDesc">내신 서술형과 수행평가를 놓치지 않으면서, 고등 독해에 필요한 구문과 어휘량을 함께 쌓습니다.</p>
-            <span class="course-more" data-bind="courseMore">자세히 보기 →</span>
-          </a>
-          <a class="course-card" id="course-high" href="high.html">
-            <em data-bind="highRange">고1–고3</em>
-            <small class="course-en" data-bind="highEn">HIGH SCHOOL</small>
-            <h3 data-bind="highName">고등부</h3>
-            <p data-bind="highDesc">내신 고득점과 수능 독해 속도를 동시에 관리합니다. 약점 유형을 분리해 클리닉으로 보완합니다.</p>
-            <span class="course-more" data-bind="courseMore">자세히 보기 →</span>
-          </a>
         </div>
       </div>
     </section>
@@ -457,7 +425,7 @@
 
         <section class="admin-section">
           <h3>커리큘럼 카드 / 학년 범위</h3>
-          <p class="admin-hint">커리큘럼 카드에 보입니다. 학년 범위는 시간표 탭과 같게 맞출 수 있고, 부서 이름은 메뉴·로고 옆에도 쓰입니다.</p>
+          <p class="admin-hint">부서 이름과 영문 표기는 메인 오른쪽 패널 3칸과 메뉴에 보입니다. 학년 범위는 시간표 탭과 같게 맞출 수 있습니다.</p>
           <div class="field">
             <label>커리큘럼 구역 제목</label>
             <input name="curriculumTitle" maxlength="40" />
@@ -471,7 +439,7 @@
             <input name="courseMore" maxlength="20" />
           </div>
           <div class="field">
-            <label>초등 영문 표기 <span class="hint">커리큘럼 카드</span></label>
+            <label>초등 영문 표기 <span class="hint">메인 패널 3칸</span></label>
             <input name="elemEn" maxlength="30" />
           </div>
           <div class="field">
@@ -479,7 +447,7 @@
             <input name="elemName" maxlength="20" />
           </div>
           <div class="field">
-            <label>초등 학년 범위 <span class="hint">홈 카드에 보입니다. 시간표 탭과 같게 적어 주세요.</span></label>
+            <label>초등 학년 범위 <span class="hint">시간표 탭과 같게 적어 주세요.</span></label>
             <input name="elemRange" maxlength="30" />
             <p class="admin-hint" data-grade-hint="elementary"></p>
           </div>
@@ -488,7 +456,7 @@
             <textarea name="elemDesc"></textarea>
           </div>
           <div class="field">
-            <label>중등 영문 표기 <span class="hint">커리큘럼 카드</span></label>
+            <label>중등 영문 표기 <span class="hint">메인 패널 3칸</span></label>
             <input name="middleEn" maxlength="30" />
           </div>
           <div class="field">
@@ -505,7 +473,7 @@
             <textarea name="middleDesc"></textarea>
           </div>
           <div class="field">
-            <label>고등 영문 표기 <span class="hint">커리큘럼 카드</span></label>
+            <label>고등 영문 표기 <span class="hint">메인 패널 3칸</span></label>
             <input name="highEn" maxlength="30" />
           </div>
           <div class="field">
