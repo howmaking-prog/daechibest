@@ -47,21 +47,21 @@
       </button>
       <nav class="nav-wrap" id="navWrap">
         <ul class="nav-list">
-          <li><a href="#home">홈</a></li>
-          <li><a href="#about">학원소개</a></li>
-          <li><a href="#features">특징</a></li>
+          <li><a href="#home" data-bind="navHome">홈</a></li>
+          <li><a href="#about" data-bind="navAbout">학원소개</a></li>
+          <li><a href="#features" data-bind="navFeatures">특징</a></li>
           <li class="has-sub">
-            <a href="elementary.html">커리큘럼</a>
+            <a href="elementary.html" data-bind="navCurriculum">커리큘럼</a>
             <ul class="sub-nav">
-              <li><a href="elementary.html">초등부</a></li>
-              <li><a href="middle.html">중등부</a></li>
-              <li><a href="high.html">고등부</a></li>
+              <li><a href="elementary.html" data-bind="elemName">초등부</a></li>
+              <li><a href="middle.html" data-bind="middleName">중등부</a></li>
+              <li><a href="high.html" data-bind="highName">고등부</a></li>
             </ul>
           </li>
-          <li><a href="#contact">오시는 길</a></li>
+          <li><a href="#contact" data-bind="navContact">오시는 길</a></li>
         </ul>
         <a class="header-cta" data-phone-link href="tel:02-556-3510">
-          <span>상담 문의</span>
+          <span data-bind="headerCta">상담 문의</span>
         </a>
       </nav>
     </div>
@@ -71,12 +71,12 @@
     <section class="hero" id="home">
       <div class="hero-inner">
         <div>
-          <div class="eyebrow">Daechi Best Academy</div>
+          <div class="eyebrow" data-bind="eyebrow">Daechi Best Academy</div>
           <h1 data-bind="heroSlogan">대치동의 기준이 되는 영어</h1>
           <p class="hero-sub" data-bind="heroSub">초등부터 고등까지, 실력과 자신감을 함께 키우는 대치베스트 어학원입니다. 소수 정예 수업과 체계적인 레벨 관리로 한 명 한 명의 성장을 책임집니다.</p>
           <div class="hero-actions">
             <a class="btn-primary" href="#contact" data-bind="heroCta">상담 예약하기</a>
-            <a class="btn-ghost" href="elementary.html">커리큘럼 보기</a>
+            <a class="btn-ghost" href="elementary.html" data-bind="heroGhostCta">커리큘럼 보기</a>
           </div>
         </div>
         <aside class="hero-panel">
@@ -102,16 +102,16 @@
 
     <div class="program-tabs">
       <a class="program-tab" href="elementary.html">
-        <small>ELEMENTARY</small>
-        <strong>초등부</strong>
+        <small data-bind="elemEn">ELEMENTARY</small>
+        <strong data-bind="elemName">초등부</strong>
       </a>
       <a class="program-tab" href="middle.html">
-        <small>MIDDLE</small>
-        <strong>중등부</strong>
+        <small data-bind="middleEn">MIDDLE</small>
+        <strong data-bind="middleName">중등부</strong>
       </a>
       <a class="program-tab" href="high.html">
-        <small>HIGH SCHOOL</small>
-        <strong>고등부</strong>
+        <small data-bind="highEn">HIGH SCHOOL</small>
+        <strong data-bind="highName">고등부</strong>
       </a>
     </div>
 
@@ -125,8 +125,8 @@
 문법, 독해, 어휘, 작문을 학년별 목표에 맞게 나누고, 수업 이후 복습과 클리닉까지 연결해 성적이 쌓이는 구조를 만듭니다.</p>
         </div>
         <div class="about-visual">
-          <h3>Why Daechi Best</h3>
-          <p>화려한 구호보다, 수업의 밀도와 관리의 정확함으로 신뢰를 쌓습니다.</p>
+          <h3 data-bind="whyTitle">Why Daechi Best</h3>
+          <p data-bind="whyText">화려한 구호보다, 수업의 밀도와 관리의 정확함으로 신뢰를 쌓습니다.</p>
         </div>
       </div>
     </section>
@@ -135,8 +135,8 @@
       <div class="section-inner">
         <div class="section-head">
           <div class="section-kicker">Features</div>
-          <h2>대치베스트만의 핵심 특징</h2>
-          <p>학생 한 명의 현재 실력과 다음 목표를 기준으로 수업과 숙제, 피드백을 설계합니다.</p>
+          <h2 data-bind="featuresTitle">대치베스트만의 핵심 특징</h2>
+          <p data-bind="featuresSub">학생 한 명의 현재 실력과 다음 목표를 기준으로 수업과 숙제, 피드백을 설계합니다.</p>
         </div>
         <div class="feature-grid">
           <article class="feature-card">
@@ -168,27 +168,27 @@
       <div class="section-inner">
         <div class="section-head">
           <div class="section-kicker">Curriculum</div>
-          <h2>초등부터 고등까지 이어지는 커리큘럼</h2>
-          <p>학년의 전환기에도 수업 방식이 끊기지 않도록, 단계별 목표를 분명히 나눕니다.</p>
+          <h2 data-bind="curriculumTitle">초등부터 고등까지 이어지는 커리큘럼</h2>
+          <p data-bind="curriculumSub">학년의 전환기에도 수업 방식이 끊기지 않도록, 단계별 목표를 분명히 나눕니다.</p>
         </div>
         <div class="curriculum-grid">
           <a class="course-card" href="elementary.html">
-            <em>초등 3–6</em>
-            <h3>초등부</h3>
-            <p>읽기의 기초와 어휘 습관을 먼저 세웁니다. 문법 용어보다 문장이 만들어지는 감각을 익혀, 중등 내신으로 자연스럽게 연결합니다.</p>
-            <span class="course-more">자세히 보기 →</span>
+            <em data-bind="elemRange">초등 5–6</em>
+            <h3 data-bind="elemName">초등부</h3>
+            <p data-bind="elemDesc">읽기의 기초와 어휘 습관을 먼저 세웁니다. 문법 용어보다 문장이 만들어지는 감각을 익혀, 중등 내신으로 자연스럽게 연결합니다.</p>
+            <span class="course-more" data-bind="courseMore">자세히 보기 →</span>
           </a>
           <a class="course-card" href="middle.html">
-            <em>중1–중3</em>
-            <h3>중등부</h3>
-            <p>내신 서술형과 수행평가를 놓치지 않으면서, 고등 독해에 필요한 구문과 어휘량을 함께 쌓습니다.</p>
-            <span class="course-more">자세히 보기 →</span>
+            <em data-bind="middleRange">중1–중3</em>
+            <h3 data-bind="middleName">중등부</h3>
+            <p data-bind="middleDesc">내신 서술형과 수행평가를 놓치지 않으면서, 고등 독해에 필요한 구문과 어휘량을 함께 쌓습니다.</p>
+            <span class="course-more" data-bind="courseMore">자세히 보기 →</span>
           </a>
           <a class="course-card" href="high.html">
-            <em>고1–고3</em>
-            <h3>고등부</h3>
-            <p>내신 고득점과 수능 독해 속도를 동시에 관리합니다. 약점 유형을 분리해 클리닉으로 보완합니다.</p>
-            <span class="course-more">자세히 보기 →</span>
+            <em data-bind="highRange">고1–고3</em>
+            <h3 data-bind="highName">고등부</h3>
+            <p data-bind="highDesc">내신 고득점과 수능 독해 속도를 동시에 관리합니다. 약점 유형을 분리해 클리닉으로 보완합니다.</p>
+            <span class="course-more" data-bind="courseMore">자세히 보기 →</span>
           </a>
         </div>
       </div>
@@ -198,27 +198,27 @@
       <div class="section-inner">
         <div class="section-head">
           <div class="section-kicker">Location</div>
-          <h2>오시는 길</h2>
-          <p>방문 상담은 사전 예약제로 진행합니다. 아래 연락처로 먼저 문의해 주세요.</p>
+          <h2 data-bind="contactTitle">오시는 길</h2>
+          <p data-bind="contactSub">방문 상담은 사전 예약제로 진행합니다. 아래 연락처로 먼저 문의해 주세요.</p>
         </div>
         <div class="contact-grid">
           <dl class="info-list">
             <div class="info-item">
-              <dt>주소</dt>
+              <dt data-bind="contactAddressLabel">주소</dt>
               <dd data-bind="address">서울 강남구 선릉로 64길 11-2, 6층</dd>
             </div>
             <div class="info-item">
-              <dt>전화</dt>
+              <dt data-bind="contactPhoneLabel">전화</dt>
               <dd data-bind="phone">02-556-3510</dd>
             </div>
             <div class="info-item">
-              <dt>운영 시간</dt>
+              <dt data-bind="contactHoursLabel">운영 시간</dt>
               <dd data-bind="hours">평일: 14:00 ~ 22:00
 토요일: 10:00 ~ 18:00
 일요일 휴무</dd>
             </div>
             <div class="info-item">
-              <dt>찾아오시는 방법</dt>
+              <dt data-bind="contactDirectionsLabel">찾아오시는 방법</dt>
               <dd data-bind="directions">서울 강남구 선릉로 64길 11-2, 6층에 있습니다. 방문 전 전화로 상담 시간을 예약해 주세요.</dd>
             </div>
           </dl>
@@ -243,16 +243,16 @@
         <p data-bind="phone">02-556-3510</p>
       </div>
       <div>
-        <h4>바로가기</h4>
+        <h4 data-bind="footerShortcuts">바로가기</h4>
         <ul>
-          <li><a href="elementary.html">초등부</a></li>
-          <li><a href="middle.html">중등부</a></li>
-          <li><a href="high.html">고등부</a></li>
-          <li><a href="#contact">오시는 길</a></li>
+          <li><a href="elementary.html" data-bind="elemName">초등부</a></li>
+          <li><a href="middle.html" data-bind="middleName">중등부</a></li>
+          <li><a href="high.html" data-bind="highName">고등부</a></li>
+          <li><a href="#contact" data-bind="navContact">오시는 길</a></li>
         </ul>
       </div>
       <div>
-        <h4>운영시간</h4>
+        <h4 data-bind="footerHoursTitle">운영시간</h4>
         <p data-bind="hours">평일: 14:00 ~ 22:00
 토요일: 10:00 ~ 18:00
 일요일 휴무</p>
@@ -316,9 +316,45 @@
             </div>
           </div>
         </section>
-
         <section class="admin-section">
-          <h3>2. 메인 화면 큰 글씨</h3>
+          <h3>상단 메뉴 / 상담 버튼</h3>
+          <div class="field">
+            <label>상담 문의 버튼</label>
+            <input name="headerCta" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>메뉴 · 홈</label>
+            <input name="navHome" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>메뉴 · 학원소개</label>
+            <input name="navAbout" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>메뉴 · 특징</label>
+            <input name="navFeatures" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>메뉴 · 커리큘럼</label>
+            <input name="navCurriculum" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>메뉴 · 오시는 길</label>
+            <input name="navContact" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>푸터 바로가기 제목</label>
+            <input name="footerShortcuts" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>푸터 운영시간 제목</label>
+            <input name="footerHoursTitle" maxlength="20" />
+          </div>
+        </section>
+          <div class="field">
+            <label>상단 영문 문구 <span class="hint">Daechi Best Academy 같이 제목 위에 보이는 글</span></label>
+            <input name="eyebrow" maxlength="40" />
+          </div>
           <div class="field">
             <label>슬로건 <span class="hint">가장 크게 보이는 제목</span></label>
             <input name="heroSlogan" maxlength="40" />
@@ -330,6 +366,10 @@
           <div class="field">
             <label>버튼 문구</label>
             <input name="heroCta" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>옆 버튼 문구 <span class="hint">커리큘럼 보기</span></label>
+            <input name="heroGhostCta" maxlength="20" />
           </div>
         </section>
 
@@ -379,10 +419,26 @@
             <label>소개 내용</label>
             <textarea name="aboutText"></textarea>
           </div>
+          <div class="field">
+            <label>오른쪽 박스 제목 <span class="hint">Why Daechi Best</span></label>
+            <input name="whyTitle" maxlength="40" />
+          </div>
+          <div class="field">
+            <label>오른쪽 박스 설명</label>
+            <textarea name="whyText"></textarea>
+          </div>
         </section>
 
         <section class="admin-section">
           <h3>5. 핵심 특징 3가지</h3>
+          <div class="field">
+            <label>특징 구역 제목</label>
+            <input name="featuresTitle" maxlength="40" />
+          </div>
+          <div class="field">
+            <label>특징 구역 부제</label>
+            <textarea name="featuresSub"></textarea>
+          </div>
           <div class="field">
             <label>특징 1 제목</label>
             <input name="feature1Title" />
@@ -409,19 +465,113 @@
           </div>
         </section>
 
+        </section>
+
+        <section class="admin-section">
+          <h3>커리큘럼 카드 / 학년 범위</h3>
+          <p class="admin-hint">홈 카드 학년 범위는 초등·중등·고등 시간표 탭과 같게 맞출 수 있습니다. 부서 이름은 메뉴·탭·로고 옆에도 같이 쓰입니다.</p>
+          <div class="field">
+            <label>커리큘럼 구역 제목</label>
+            <input name="curriculumTitle" maxlength="40" />
+          </div>
+          <div class="field">
+            <label>커리큘럼 구역 부제</label>
+            <textarea name="curriculumSub"></textarea>
+          </div>
+          <div class="field">
+            <label>카드 더보기 문구</label>
+            <input name="courseMore" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>초등 영문 탭</label>
+            <input name="elemEn" maxlength="30" />
+          </div>
+          <div class="field">
+            <label>초등 부서 이름</label>
+            <input name="elemName" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>초등 학년 범위 <span class="hint">홈 카드에 보입니다. 시간표 탭과 같게 적어 주세요.</span></label>
+            <input name="elemRange" maxlength="30" />
+            <p class="admin-hint" data-grade-hint="elementary"></p>
+          </div>
+          <div class="field">
+            <label>초등 카드 설명</label>
+            <textarea name="elemDesc"></textarea>
+          </div>
+          <div class="field">
+            <label>중등 영문 탭</label>
+            <input name="middleEn" maxlength="30" />
+          </div>
+          <div class="field">
+            <label>중등 부서 이름</label>
+            <input name="middleName" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>중등 학년 범위</label>
+            <input name="middleRange" maxlength="30" />
+            <p class="admin-hint" data-grade-hint="middle"></p>
+          </div>
+          <div class="field">
+            <label>중등 카드 설명</label>
+            <textarea name="middleDesc"></textarea>
+          </div>
+          <div class="field">
+            <label>고등 영문 탭</label>
+            <input name="highEn" maxlength="30" />
+          </div>
+          <div class="field">
+            <label>고등 부서 이름</label>
+            <input name="highName" maxlength="20" />
+          </div>
+          <div class="field">
+            <label>고등 학년 범위</label>
+            <input name="highRange" maxlength="30" />
+            <p class="admin-hint" data-grade-hint="high"></p>
+          </div>
+          <div class="field">
+            <label>고등 카드 설명</label>
+            <textarea name="highDesc"></textarea>
+          </div>
+        </section>
+
         <section class="admin-section">
           <h3>6. 오시는 길 / 연락처</h3>
           <div class="field">
+            <label>오시는 길 제목</label>
+            <input name="contactTitle" maxlength="30" />
+          </div>
+          <div class="field">
+            <label>오시는 길 안내 문장</label>
+            <textarea name="contactSub"></textarea>
+          </div>
+          <div class="field">
+            <label>주소 칸 이름</label>
+            <input name="contactAddressLabel" maxlength="20" />
+          </div>
+          <div class="field">
             <label>주소</label>
             <input name="address" />
+          </div>
+          <div class="field">
+            <label>전화 칸 이름</label>
+            <input name="contactPhoneLabel" maxlength="20" />
           </div>
           <div class="field">
             <label>전화번호</label>
             <input name="phone" />
           </div>
           <div class="field">
+            <label>운영 시간 칸 이름</label>
+            <input name="contactHoursLabel" maxlength="20" />
+          </div>
+          <div class="field">
             <label>운영 시간 <span class="hint">푸터와 오시는 길에 표시됩니다. 줄바꿈이 그대로 반영됩니다.</span></label>
             <textarea name="hours"></textarea>
+          </div>
+          <div class="field">
+            <label>찾아오시는 방법 칸 이름</label>
+            <input name="contactDirectionsLabel" maxlength="20" />
           </div>
           <div class="field">
             <label>찾아오시는 방법</label>

@@ -42,7 +42,51 @@ const DEFAULT_CONTENT = {
   address: "서울 강남구 선릉로 64길 11-2, 6층",
   phone: "02-556-3510",
   hours: "평일: 14:00 ~ 22:00\n토요일: 10:00 ~ 18:00\n일요일 휴무",
-  directions: "서울 강남구 선릉로 64길 11-2, 6층에 있습니다. 방문 전 전화로 상담 시간을 예약해 주세요."
+  directions: "서울 강남구 선릉로 64길 11-2, 6층에 있습니다. 방문 전 전화로 상담 시간을 예약해 주세요.",
+  // 홈·메뉴에만 있던 문구. 설정에서 바꿀 수 있습니다.
+  eyebrow: "Daechi Best Academy",
+  heroGhostCta: "커리큘럼 보기",
+  headerCta: "상담 문의",
+  whyTitle: "Why Daechi Best",
+  whyText: "화려한 구호보다, 수업의 밀도와 관리의 정확함으로 신뢰를 쌓습니다.",
+  featuresTitle: "대치베스트만의 핵심 특징",
+  featuresSub: "학생 한 명의 현재 실력과 다음 목표를 기준으로 수업과 숙제, 피드백을 설계합니다.",
+  curriculumTitle: "초등부터 고등까지 이어지는 커리큘럼",
+  curriculumSub: "학년의 전환기에도 수업 방식이 끊기지 않도록, 단계별 목표를 분명히 나눕니다.",
+  contactTitle: "오시는 길",
+  contactSub: "방문 상담은 사전 예약제로 진행합니다. 아래 연락처로 먼저 문의해 주세요.",
+  contactAddressLabel: "주소",
+  contactPhoneLabel: "전화",
+  contactHoursLabel: "운영 시간",
+  contactDirectionsLabel: "찾아오시는 방법",
+  navHome: "홈",
+  navAbout: "학원소개",
+  navFeatures: "특징",
+  navCurriculum: "커리큘럼",
+  navContact: "오시는 길",
+  footerShortcuts: "바로가기",
+  footerHoursTitle: "운영시간",
+  elemEn: "ELEMENTARY",
+  middleEn: "MIDDLE",
+  highEn: "HIGH SCHOOL",
+  elemName: "초등부",
+  middleName: "중등부",
+  highName: "고등부",
+  // 홈 카드 학년 범위. 초등 시간표 탭(5·6학년)과 같게 맞춥니다.
+  elemRange: "초등 5–6",
+  middleRange: "중1–중3",
+  highRange: "고1–고3",
+  elemDesc: "읽기의 기초와 어휘 습관을 먼저 세웁니다. 문법 용어보다 문장이 만들어지는 감각을 익혀, 중등 내신으로 자연스럽게 연결합니다.",
+  middleDesc: "내신 서술형과 수행평가를 놓치지 않으면서, 고등 독해에 필요한 구문과 어휘량을 함께 쌓습니다.",
+  highDesc: "내신 고득점과 수능 독해 속도를 동시에 관리합니다. 약점 유형을 분리해 클리닉으로 보완합니다.",
+  courseMore: "자세히 보기 →"
+};
+
+// 홈 카드·메뉴 이름과 학년 페이지 부서 이름을 같은 값으로 맞춥니다.
+const DEPT_HOME_FIELDS = {
+  elementary: { name: "elemName", en: "elemEn", range: "elemRange", desc: "elemDesc" },
+  middle: { name: "middleName", en: "middleEn", range: "middleRange", desc: "middleDesc" },
+  high: { name: "highName", en: "highEn", range: "highRange", desc: "highDesc" }
 };
 
 // 예전에 저장해 둔 임시 연락처는 새 기본값으로 바꿉니다.
@@ -254,6 +298,51 @@ const saveContent = (data) => {
   });
 };
 
+// 시간표 탭 이름을 홈 카드 학년 범위 칸 옆에 보여 줍니다.
+const gradeTabHint = (page) => {
+  const cur = (memory.curriculum && memory.curriculum[page]) || {};
+  const names = (cur.grades || []).map((grade) => (grade && grade.name) || "").filter(Boolean);
+  return names.join(" · ");
+};
+
+const applyGradeHints = () => {
+  $$("[data-grade-hint]").forEach((el) => {
+    const names = gradeTabHint(el.dataset.gradeHint);
+    el.textContent = names
+      ? `지금 시간표 탭: ${names}`
+      : "시간표 학년 탭 이름과 같게 적으면 홈 카드와 설명이 맞습니다.";
+  });
+};
+
+const applyDeptCopyToCurriculum = (homepage, curriculum) => {
+  if (!curriculum) return curriculum;
+  const next = { ...curriculum };
+  Object.keys(DEPT_HOME_FIELDS).forEach((page) => {
+    if (!next[page]) return;
+    const map = DEPT_HOME_FIELDS[page];
+    next[page] = {
+      ...next[page],
+      label: homepage[map.name],
+      englishLabel: homepage[map.en],
+      rangeLabel: homepage[map.range],
+      courseDesc: homepage[map.desc]
+    };
+  });
+  return next;
+};
+
+const applyDeptCopyFromPage = (homepage, curriculum, page) => {
+  const next = { ...homepage };
+  const map = DEPT_HOME_FIELDS[page];
+  const src = curriculum && curriculum[page];
+  if (!map || !src) return next;
+  next[map.name] = src.label;
+  next[map.en] = src.englishLabel;
+  next[map.range] = src.rangeLabel;
+  next[map.desc] = src.courseDesc;
+  return next;
+};
+
 const applyContent = (data) => {
   $$("[data-bind]").forEach((el) => {
     const key = el.dataset.bind;
@@ -263,6 +352,7 @@ const applyContent = (data) => {
   });
 
   applyLogos(data);
+  applyGradeHints();
 
   $$("[data-phone-link]").forEach((el) => {
     el.href = `tel:${String(data.phone || "").replace(/\s+/g, "")}`;
@@ -274,7 +364,7 @@ const applyContent = (data) => {
   }
 
   const page = document.body.dataset.page;
-  const names = { elementary: "초등부", middle: "중등부", high: "고등부" };
+  const names = { elementary: data.elemName, middle: data.middleName, high: data.highName };
   document.title = page && names[page]
     ? `${names[page]} | ${data.academyName}`
     : (data.academyName || "대치베스트 어학원");
@@ -490,18 +580,29 @@ const mergeSavePayload = (formHomepage, remote, options = {}) => {
       if (!curriculum[key] && localCur && localCur[key]) curriculum[key] = localCur[key];
     });
     if (localCur && localCur[page]) curriculum[page] = localCur[page];
+    const syncedHome = applyDeptCopyFromPage(homepage, curriculum, page);
+    const deptMap = DEPT_HOME_FIELDS[page];
+    const deptDirty = !!(deptMap && (
+      String(remoteHome[deptMap.name] || "") !== String(syncedHome[deptMap.name] || "")
+      || String(remoteHome[deptMap.en] || "") !== String(syncedHome[deptMap.en] || "")
+      || String(remoteHome[deptMap.range] || "") !== String(syncedHome[deptMap.range] || "")
+      || String(remoteHome[deptMap.desc] || "") !== String(syncedHome[deptMap.desc] || "")
+    ));
     return {
-      homepage,
+      homepage: syncedHome,
       curriculum,
-      homepageUpdatedAt: applyShared && (hasDirtySharedFields(formHomepage) || !!formHomepage.adminPass) ? now : Number((remote && remote.homepageUpdatedAt) || memory.homepageUpdatedAt) || 0,
+      homepageUpdatedAt: applyShared && (hasDirtySharedFields(formHomepage) || !!formHomepage.adminPass || deptDirty) ? now : Number((remote && remote.homepageUpdatedAt) || memory.homepageUpdatedAt) || 0,
       curriculumUpdatedAt: { ...remoteStamp, ...localStamp, [page]: now }
     };
   }
   const remoteTime = Number(remote && remote.updatedAt) || 0;
   const localTime = Number(memory.updatedAt) || 0;
-  const curriculum = (remoteCur && remoteTime >= localTime)
-    ? remoteCur
-    : (localCur || remoteCur || memory.curriculum || null);
+  const curriculum = applyDeptCopyToCurriculum(
+    formHomepage,
+    (remoteCur && remoteTime >= localTime)
+      ? remoteCur
+      : (localCur || remoteCur || memory.curriculum || null)
+  );
   return {
     homepage: formHomepage,
     curriculum,
@@ -871,7 +972,8 @@ const initAdmin = () => {
           showToast("글은 저장했습니다. 로고 파일은 올리지 못했습니다. 연결 키 권한을 확인해 주세요.");
         } else if (synced) {
           const page = currentSitePage();
-          const labels = { home: "홈", elementary: "초등부", middle: "중등부", high: "고등부" };
+          const home = loadContent();
+          const labels = { home: "홈", elementary: home.elemName || "초등부", middle: home.middleName || "중등부", high: home.highName || "고등부" };
           showToast(`${labels[page] || "이 페이지"}만 저장했습니다. PC와 휴대폰에 함께 반영됩니다.`);
         } else {
           showToast("이 기기에만 저장됐습니다. 연결 키 권한을 확인해 주세요.");
@@ -920,12 +1022,12 @@ const init = () => {
     memory = readLocalPayload();
     const year = $("#year");
     if (year) year.textContent = String(new Date().getFullYear());
-    applyContent(loadContent());
-    initNav();
-    initAdmin();
     if (memory.curriculum && typeof window.setCurriculumStore === "function") {
       window.setCurriculumStore(memory.curriculum);
     }
+    applyContent(loadContent());
+    initNav();
+    initAdmin();
     if (typeof window.renderCurriculumPage === "function") window.renderCurriculumPage();
     if (typeof window.initCurriculumUI === "function") window.initCurriculumUI();
     pullRemote()

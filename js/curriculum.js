@@ -5,6 +5,13 @@ const LEGACY_CURRICULUM_KEY = "daechibest_curriculum";
 const DEFAULT_CURRICULUM = {
   elementary: {
     label: "초등부",
+    englishLabel: "ELEMENTARY",
+    rangeLabel: "초등 5–6",
+    courseDesc: "읽기의 기초와 어휘 습관을 먼저 세웁니다. 문법 용어보다 문장이 만들어지는 감각을 익혀, 중등 내신으로 자연스럽게 연결합니다.",
+    timetableTitle: "시간표",
+    noticeTitle: "공지사항",
+    moreLabel: "더보기 >",
+    importantLabel: "중요 공지",
     columns: ["요일", "시간", "수업"],
     slides: [
       {
@@ -77,6 +84,13 @@ const DEFAULT_CURRICULUM = {
   },
   middle: {
     label: "중등부",
+    englishLabel: "MIDDLE",
+    rangeLabel: "중1–중3",
+    courseDesc: "내신 서술형과 수행평가를 놓치지 않으면서, 고등 독해에 필요한 구문과 어휘량을 함께 쌓습니다.",
+    timetableTitle: "시간표",
+    noticeTitle: "공지사항",
+    moreLabel: "더보기 >",
+    importantLabel: "중요 공지",
     columns: ["요일", "시간", "수업"],
     slides: [
       {
@@ -149,6 +163,13 @@ const DEFAULT_CURRICULUM = {
   },
   high: {
     label: "고등부",
+    englishLabel: "HIGH SCHOOL",
+    rangeLabel: "고1–고3",
+    courseDesc: "내신 고득점과 수능 독해 속도를 동시에 관리합니다. 약점 유형을 분리해 클리닉으로 보완합니다.",
+    timetableTitle: "시간표",
+    noticeTitle: "공지사항",
+    moreLabel: "더보기 >",
+    importantLabel: "중요 공지",
     columns: ["요일", "시간", "수업"],
     slides: [
       {
@@ -819,6 +840,42 @@ const readTimetableAdmin = (form, pageData) => {
   };
 };
 
+const PAGE_COPY_FIELDS = ["label", "englishLabel", "rangeLabel", "courseDesc", "timetableTitle", "noticeTitle", "moreLabel", "importantLabel"];
+
+// 홈에 이미 저장한 부서 이름·학년 범위가 있으면 설정 칸에 같이 보여 줍니다.
+const fillPageCopyAdmin = (form, data) => {
+  if (!form) return;
+  const home = (window.DaechiBest && window.DaechiBest.loadContent)
+    ? window.DaechiBest.loadContent()
+    : {};
+  const mapped = {
+    elementary: { label: "elemName", englishLabel: "elemEn", rangeLabel: "elemRange", courseDesc: "elemDesc" },
+    middle: { label: "middleName", englishLabel: "middleEn", rangeLabel: "middleRange", courseDesc: "middleDesc" },
+    high: { label: "highName", englishLabel: "highEn", rangeLabel: "highRange", courseDesc: "highDesc" }
+  }[currentPage()] || {};
+  const pick = (key) => {
+    const fromPage = data[key];
+    if (fromPage != null && String(fromPage).trim()) return fromPage;
+    const homeKey = mapped[key];
+    return (homeKey && home[homeKey]) || "";
+  };
+  if (form.elements.deptLabel) form.elements.deptLabel.value = pick("label");
+  PAGE_COPY_FIELDS.forEach((key) => {
+    if (key === "label") return;
+    if (form.elements[key]) form.elements[key].value = pick(key);
+  });
+};
+
+const readPageCopyAdmin = (form, pageData) => {
+  const next = { ...(pageData || {}) };
+  next.label = withFormText(form, "deptLabel", next.label || "");
+  PAGE_COPY_FIELDS.forEach((key) => {
+    if (key === "label") return;
+    next[key] = withFormText(form, key, next[key] || "");
+  });
+  return next;
+};
+
 const currentPage = () => document.body.dataset.page || "elementary";
 
 const currentData = () => loadCurriculum()[currentPage()] || DEFAULT_CURRICULUM.elementary;
@@ -919,7 +976,7 @@ const openSchedule = (index, options = {}) => {
     </div>`
     : `<p class="schedule-empty">이 학년 시간표는 아직 등록되지 않았습니다.</p>`;
   panel.innerHTML = `
-    <h3>${escapeHtml(data.label)} ${escapeHtml(termName ? `${termName} 시간표` : "시간표")}</h3>
+    <h3>${escapeHtml(data.label)} ${escapeHtml(termName ? `${termName} ${data.timetableTitle || "시간표"}` : (data.timetableTitle || "시간표"))}</h3>
     ${subtitle ? `<p>${escapeHtml(subtitle)}</p>` : ""}
     ${body}
   `;
@@ -933,7 +990,9 @@ const openNotice = (index) => {
   const item = currentData().notices[index];
   const modal = document.querySelector("#noticeModal");
   if (!item || !modal) return;
-  modal.querySelector("[data-notice-kicker]").textContent = item.important ? "중요 공지" : "공지사항";
+  modal.querySelector("[data-notice-kicker]").textContent = item.important
+    ? (currentData().importantLabel || "중요 공지")
+    : (currentData().noticeTitle || "공지사항");
   modal.querySelector("[data-notice-title]").textContent = item.title;
   modal.querySelector("[data-notice-date]").textContent = item.date;
   modal.querySelector("[data-notice-body]").textContent = item.body || "";
@@ -1195,6 +1254,7 @@ const fillCurriculumAdmin = () => {
   rebuildSlidesAdmin(form);
   rebuildNoticesAdmin(form);
   fillTimetableAdmin(form, adminDraft, { keepDraft: true });
+  fillPageCopyAdmin(form, adminDraft);
 };
 
 const saveCurriculumAdmin = () => {
@@ -1202,7 +1262,7 @@ const saveCurriculumAdmin = () => {
   if (!form) return true;
   const all = loadCurriculum();
   const page = currentPage();
-  const next = deepCopy(all[page]);
+  const next = readPageCopyAdmin(form, deepCopy(all[page]));
   next.slides = readSlidesFromForm(form);
   next.notices = readNoticesFromForm(form);
   Object.assign(next, readTimetableAdmin(form, next));
@@ -1222,6 +1282,7 @@ const resetCurriculumAdmin = () => {
   rebuildSlidesAdmin(form);
   rebuildNoticesAdmin(form);
   fillTimetableAdmin(form, adminDraft, { keepDraft: true });
+  fillPageCopyAdmin(form, adminDraft);
 };
 
 const renderCurriculumPage = () => {
@@ -1230,6 +1291,12 @@ const renderCurriculumPage = () => {
   const data = currentData();
   const dept = document.querySelector("[data-dept-label]");
   if (dept) dept.textContent = data.label;
+  document.querySelectorAll("[data-board]").forEach((el) => {
+    const key = el.dataset.board;
+    if (data[key] != null) el.textContent = data[key];
+  });
+  const hero = document.querySelector(".dept-hero");
+  if (hero) hero.setAttribute("aria-label", `${data.label || ""} 배너`.trim());
   renderSlides(data);
   renderTimetable(data);
   renderNotices(data);

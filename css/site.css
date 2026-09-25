@@ -657,6 +657,10 @@
       line-height: 1.5;
       color: var(--muted);
     }
+    .admin-hint[data-grade-hint] {
+      margin: -6px 0 14px;
+      color: var(--navy-700);
+    }
     .time-block {
       margin-top: 16px;
       padding-top: 14px;

@@ -47,20 +47,20 @@
       </button>
       <nav class="nav-wrap" id="navWrap">
         <ul class="nav-list">
-          <li><a href="index.html">홈</a></li>
-          <li><a href="index.html#about">학원소개</a></li>
-          <li><a href="index.html#features">특징</a></li>
+          <li><a href="index.html" data-bind="navHome">홈</a></li>
+          <li><a href="index.html#about" data-bind="navAbout">학원소개</a></li>
+          <li><a href="index.html#features" data-bind="navFeatures">특징</a></li>
           <li class="has-sub">
-            <a class="is-active" href="elementary.html">커리큘럼</a>
+            <a class="is-active" href="elementary.html" data-bind="navCurriculum">커리큘럼</a>
             <ul class="sub-nav">
-              <li><a class="is-active" href="elementary.html">초등부</a></li>
-              <li><a href="middle.html">중등부</a></li>
-              <li><a href="high.html">고등부</a></li>
+              <li><a href="elementary.html" data-bind="elemName">초등부</a></li>
+              <li><a href="middle.html" data-bind="middleName">중등부</a></li>
+              <li><a href="high.html" data-bind="highName">고등부</a></li>
             </ul>
           </li>
-          <li><a href="index.html#contact">오시는 길</a></li>
+          <li><a href="index.html#contact" data-bind="navContact">오시는 길</a></li>
         </ul>
-        <a class="header-cta" data-phone-link href="tel:02-556-3510">상담 문의</a>
+        <a class="header-cta" data-phone-link href="tel:02-556-3510"><span data-bind="headerCta">상담 문의</span></a>
       </nav>
     </div>
   </header>
@@ -78,16 +78,16 @@
         <div class="board-grid">
           <article class="timetable-col">
             <div class="board-head">
-              <h2>시간표</h2>
-              <a class="more-link" id="timeMore" href="#schedulePanel">더보기 &gt;</a>
+              <h2 data-board="timetableTitle">시간표</h2>
+              <a class="more-link" id="timeMore" href="#schedulePanel" data-board="moreLabel">더보기 &gt;</a>
             </div>
             <div class="grade-tabs" id="gradeTabs"></div>
             <ul class="board-list" id="timetableList"></ul>
           </article>
           <article class="notice-col">
             <div class="board-head">
-              <h2>공지사항</h2>
-              <a class="more-link" id="noticeMore" href="#noticeList">더보기 &gt;</a>
+              <h2 data-board="noticeTitle">공지사항</h2>
+              <a class="more-link" id="noticeMore" href="#noticeList" data-board="moreLabel">더보기 &gt;</a>
             </div>
             <ul class="board-list" id="noticeList"></ul>
           </article>
@@ -110,16 +110,16 @@
         <p data-bind="phone">02-556-3510</p>
       </div>
       <div>
-        <h4>바로가기</h4>
+        <h4 data-bind="footerShortcuts">바로가기</h4>
         <ul>
-          <li><a href="elementary.html">초등부</a></li>
-          <li><a href="middle.html">중등부</a></li>
-          <li><a href="high.html">고등부</a></li>
-          <li><a href="index.html#contact">오시는 길</a></li>
+          <li><a href="elementary.html" data-bind="elemName">초등부</a></li>
+          <li><a href="middle.html" data-bind="middleName">중등부</a></li>
+          <li><a href="high.html" data-bind="highName">고등부</a></li>
+          <li><a href="index.html#contact" data-bind="navContact">오시는 길</a></li>
         </ul>
       </div>
       <div>
-        <h4>운영시간</h4>
+        <h4 data-bind="footerHoursTitle">운영시간</h4>
         <p data-bind="hours">평일: 14:00 ~ 22:00
 토요일: 10:00 ~ 18:00
 일요일 휴무</p>
@@ -186,6 +186,19 @@
               <label>운영 시간 <span class="hint">푸터에 표시됩니다. 줄바꿈이 그대로 반영됩니다.</span></label>
               <textarea name="hours"></textarea>
             </div>
+          </section>
+          <section class="admin-section">
+            <h3>이 페이지 화면 문구</h3>
+            <p class="admin-hint">로고 옆 부서 이름, 홈 카드 학년 범위, 시간표·공지 제목을 여기서 바꿉니다. 홈 카드와 메뉴 이름도 같이 맞춰집니다. 배너 영문 라벨·버튼 문구·링크는 아래 배너 칸에서 고칩니다.</p>
+            <div class="field"><label>로고 옆 부서 이름</label><input name="deptLabel" maxlength="20" /></div>
+            <div class="field"><label>영문 라벨 <span class="hint">홈 탭 ELEMENTARY 등</span></label><input name="englishLabel" maxlength="30" /></div>
+            <div class="field"><label>홈 카드 학년 범위 <span class="hint">초등 5–6처럼. 시간표 탭과 같게 맞출 수 있습니다.</span></label><input name="rangeLabel" maxlength="30" /></div>
+            <p class="admin-hint" data-grade-hint="middle"></p>
+            <div class="field"><label>홈 카드 설명</label><textarea name="courseDesc"></textarea></div>
+            <div class="field"><label>시간표 제목</label><input name="timetableTitle" maxlength="20" /></div>
+            <div class="field"><label>공지사항 제목</label><input name="noticeTitle" maxlength="20" /></div>
+            <div class="field"><label>더보기 문구</label><input name="moreLabel" maxlength="20" /></div>
+            <div class="field"><label>중요 공지 표시</label><input name="importantLabel" maxlength="20" /></div>
           </section>
           <section class="admin-section">
             <h3>배너</h3>
