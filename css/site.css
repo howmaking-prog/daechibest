@@ -675,7 +675,7 @@
     }
     .time-row-fields {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
       gap: 8px;
       margin-bottom: 8px;
     }
@@ -1112,7 +1112,7 @@
     }
     .admin-grade-item {
       display: grid;
-      grid-template-columns: 64px minmax(0, 1fr) 56px;
+      grid-template-columns: 36px 56px minmax(0, 1fr);
       gap: 8px;
       align-items: center;
       padding: 8px;
@@ -1120,6 +1120,38 @@
       border-radius: 12px;
       background: #fff;
     }
+    .admin-grade-item.is-dragging,
+    .time-block.is-dragging { opacity: 0.55; }
+    .admin-grade-item.is-dragover,
+    .time-block.is-dragover {
+      outline: 2px dashed var(--navy-900);
+    }
+    .admin-grade-tools {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+    .admin-col-list { display: grid; gap: 8px; }
+    .admin-col-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 72px;
+      gap: 8px;
+      align-items: end;
+    }
+    .admin-drag {
+      width: 36px;
+      min-height: 40px;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      background: #f7f8fb;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      cursor: grab;
+    }
+    .admin-drag:active { cursor: grabbing; }
     .admin-grade-item.is-active {
       border-color: var(--navy-900);
       box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
@@ -1185,6 +1217,7 @@
     .time-row-head .time-row-label {
       margin: 0;
     }
+    .time-block-head h4 { flex: 1; min-width: 0; }
     .schedule-empty {
       margin: 0;
       color: var(--muted);

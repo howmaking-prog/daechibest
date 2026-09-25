@@ -591,6 +591,7 @@ const openAdmin = () => {
   };
   $("#adminOverlay").classList.add("open");
   document.body.style.overflow = "hidden";
+  rememberAdminClean();
 };
 
 const closeAdmin = () => {
@@ -598,6 +599,28 @@ const closeAdmin = () => {
   if (!$("#adminLock") || !$("#adminLock").classList.contains("open")) {
     document.body.style.overflow = "";
   }
+};
+
+let adminCleanKey = "";
+const adminStateKey = () => {
+  const form = $("#adminForm");
+  if (!form) return "";
+  const values = [...form.querySelectorAll("input, textarea, select")]
+    .filter((el) => el.type !== "file" && el.name)
+    .map((el) => `${el.name}:${el.type === "checkbox" ? el.checked : el.value}`);
+  return JSON.stringify({ values, logo: pendingLogoImage });
+};
+const rememberAdminClean = () => {
+  adminCleanKey = adminStateKey();
+};
+const isAdminDirty = () => adminCleanKey !== adminStateKey();
+const requestCloseAdmin = () => {
+  if ($("#adminOverlay") && $("#adminOverlay").classList.contains("open") && isAdminDirty()) {
+    const ok = window.confirm("저장하지 않은 내용이 있습니다. 창을 닫으면 입력한 내용이 사라집니다. 닫을까요?");
+    if (!ok) return false;
+  }
+  closeAdmin();
+  return true;
 };
 
 const closeAdminLock = () => {
@@ -755,9 +778,9 @@ const initAdmin = () => {
       showToast("이 기기에서 연결 키를 지웠습니다.");
     });
   }
-  if (closeBtn) closeBtn.addEventListener("click", closeAdmin);
+  if (closeBtn) closeBtn.addEventListener("click", requestCloseAdmin);
   overlay.addEventListener("click", (event) => {
-    if (event.target.id === "adminOverlay") closeAdmin();
+    if (event.target.id === "adminOverlay") requestCloseAdmin();
   });
   if (saveBtn) {
     saveBtn.addEventListener("click", async () => {
@@ -882,7 +905,10 @@ const initAdmin = () => {
       closeAdminLock();
       return;
     }
-    closeAdmin();
+    if ($("#adminOverlay") && $("#adminOverlay").classList.contains("open")) {
+      requestCloseAdmin();
+      return;
+    }
     const modal = $("#noticeModal");
     if (modal) modal.classList.remove("is-open");
   });
