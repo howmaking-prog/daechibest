@@ -1,4 +1,4 @@
-// 초등·중등·고등 페이지 기본 내용. 함영원 공지/제목은 사용하지 않고 대치베스트 문구로 구성합니다.
+// 초등·중등·고등 페이지 기본 내용. 실제 수정은 이 파일만 하면 됩니다.
 const UNIFIED_STORE_KEY = "daechibest_sync_v6";
 const LEGACY_CURRICULUM_KEY = "daechibest_curriculum";
 

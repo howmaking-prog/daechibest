@@ -1,3 +1,4 @@
+/* 실제 화면 스타일. 예전 site-v숫자.css 는 호환용이며, 수정은 이 파일만 하면 됩니다. */
 :root {
       --navy-950: #06101c;
       --navy-900: #0b1c33;
@@ -618,9 +619,22 @@
       line-height: 1.55;
       margin: 0 0 12px;
     }
+    .token-steps {
+      margin: 8px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .token-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      align-items: center;
+      margin-top: 10px;
+    }
     .token-link {
       display: inline-block;
-      margin-top: 8px;
       font-size: 13px;
       font-weight: 700;
       color: var(--navy-700);

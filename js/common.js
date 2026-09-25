@@ -1,4 +1,4 @@
-// 학원 공통 콘텐츠. 저장하면 GitHub의 공유 파일과 이 기기에 함께 남깁니다.
+// 학원 공통 콘텐츠. 화면 수정은 이 파일과 css/site.css, js/curriculum.js 만 하면 됩니다.
 const STORAGE_KEY = "daechibest_homepage_v5";
 const STORE_KEY = "daechibest_sync_v6";
 const TOKEN_KEY = "daechibest_github_token";
@@ -143,8 +143,20 @@ const setToken = (token) => {
     const value = String(token || "").trim();
     if (value) localStorage.setItem(TOKEN_KEY, value);
   } catch (error) {
-    console.error("토큰을 저장하는 중 문제가 발생했습니다.", error);
+    console.error("연결 키를 저장하는 중 문제가 발생했습니다.", error);
   }
+};
+
+const clearToken = () => {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch (error) {
+    console.error("연결 키를 지우는 중 문제가 발생했습니다.", error);
+  }
+  const form = $("#adminForm");
+  const field = form && form.elements.githubToken;
+  if (field) field.value = "";
+  updateSyncStatus();
 };
 
 const rememberTokenFromForm = () => {
@@ -206,8 +218,8 @@ const updateSyncStatus = () => {
   if (!status) return;
   const connected = !!getToken();
   status.textContent = connected
-    ? "연결됨 · 저장하면 PC와 휴대폰에 함께 반영됩니다."
-    : "미연결 · 토큰을 붙여넣어야 다른 기기에도 저장됩니다.";
+    ? "연결됨 · 저장하면 휴대폰과 PC에 함께 반영됩니다."
+    : "아직 연결 전입니다. 아래 방법으로 연결 키를 한 번만 저장하면 됩니다.";
   status.classList.toggle("is-on", connected);
   status.classList.toggle("is-off", !connected);
 };
@@ -524,6 +536,36 @@ const uploadLogoIfNeeded = async (homepage, token) => {
   return next;
 };
 
+// JSON에 남아 있는 예전 로고를, 관리자가 다시 저장하지 않아도 파일로 옮깁니다.
+let logoMigrateStarted = false;
+const migrateStoredLogo = async () => {
+  if (logoMigrateStarted) return;
+  const token = getToken();
+  if (!token) return;
+  const home = loadContent();
+  if (!isDataImage(home.logoImage)) return;
+  logoMigrateStarted = true;
+  try {
+    const nextHome = await uploadLogoIfNeeded(home, token);
+    if (isDataImage(nextHome.logoImage)) {
+      logoMigrateStarted = false;
+      return;
+    }
+    await pushRemotePayload({
+      v: 6,
+      updatedAt: Date.now(),
+      homepage: nextHome,
+      curriculum: memory.curriculum,
+      homepageUpdatedAt: Date.now(),
+      curriculumUpdatedAt: memory.curriculumUpdatedAt || {}
+    });
+    applyContent(loadContent());
+  } catch (error) {
+    logoMigrateStarted = false;
+    console.error("예전에 저장된 로고를 파일로 옮기지 못했습니다.", error);
+  }
+};
+
 const pushRemotePayload = async (payload) => {
   const token = getToken();
   if (!token) return false;
@@ -704,6 +746,15 @@ const initAdmin = () => {
 
   ensureAdminLock();
   openBtn.addEventListener("click", requestAdminAccess);
+  const tokenClearBtn = $("#tokenClear");
+  if (tokenClearBtn) {
+    tokenClearBtn.addEventListener("click", () => {
+      const ok = window.confirm("이 기기에서 연결 키만 지울까요?\n글과 시간표는 그대로 두고, 다른 기기에 저장하려면 키를 다시 붙여넣으면 됩니다.");
+      if (!ok) return;
+      clearToken();
+      showToast("이 기기에서 연결 키를 지웠습니다.");
+    });
+  }
   if (closeBtn) closeBtn.addEventListener("click", closeAdmin);
   overlay.addEventListener("click", (event) => {
     if (event.target.id === "adminOverlay") closeAdmin();
@@ -765,7 +816,7 @@ const initAdmin = () => {
         const token = getToken();
         if (!token) {
           closeAdmin();
-          showToast("이 기기에만 저장됐습니다. 위쪽 토큰을 연결하면 다른 기기에도 반영됩니다.");
+          showToast("이 기기에만 저장됐습니다. 위쪽 연결 키를 저장하면 다른 기기에도 반영됩니다.");
           return;
         }
 
@@ -794,13 +845,13 @@ const initAdmin = () => {
         applyContent(loadContent());
         closeAdmin();
         if (synced && logoFailed) {
-          showToast("글은 저장했습니다. 로고 파일은 올리지 못했습니다. 토큰 권한을 확인해 주세요.");
+          showToast("글은 저장했습니다. 로고 파일은 올리지 못했습니다. 연결 키 권한을 확인해 주세요.");
         } else if (synced) {
           const page = currentSitePage();
           const labels = { home: "홈", elementary: "초등부", middle: "중등부", high: "고등부" };
           showToast(`${labels[page] || "이 페이지"}만 저장했습니다. PC와 휴대폰에 함께 반영됩니다.`);
         } else {
-          showToast("이 기기에만 저장됐습니다. 토큰 권한을 확인해 주세요.");
+          showToast("이 기기에만 저장됐습니다. 연결 키 권한을 확인해 주세요.");
         }
       } finally {
         saveBtn.disabled = false;
@@ -853,13 +904,16 @@ const init = () => {
     if (typeof window.initCurriculumUI === "function") window.initCurriculumUI();
     pullRemote()
       .then((remote) => {
-        if (!remote) return;
-        const remoteTime = Number(remote.updatedAt) || 0;
-        const localTime = Number(memory.updatedAt) || 0;
-        if (remoteTime >= localTime || !localTime) applyRemote(remote);
+        if (remote) {
+          const remoteTime = Number(remote.updatedAt) || 0;
+          const localTime = Number(memory.updatedAt) || 0;
+          if (remoteTime >= localTime || !localTime) applyRemote(remote);
+        }
+        return migrateStoredLogo();
       })
       .catch((error) => {
         console.error("공유 저장 내용을 동기화하지 못했습니다.", error);
+        migrateStoredLogo();
       });
   } catch (error) {
     console.error("페이지를 준비하는 중 문제가 발생했습니다.", error);
@@ -870,4 +924,8 @@ window.DaechiBest = {
   $, $$, loadContent, saveContent, applyContent, showToast, DEFAULT_CONTENT, TOKEN_CREATE_URL
 };
 
-document.addEventListener("DOMContentLoaded", init);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}

@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <script>
-    // GitHub Pages 모바일 캐시와 슬래시 없는 주소를 바로잡습니다.
+    // 슬래시 없는 주소를 바로잡고, 접속할 때마다 최신 CSS/JS를 불러옵니다.
     (() => {
       const path = window.location.pathname;
       if (/\/daechibest$/i.test(path)) {
@@ -13,10 +15,14 @@
         return;
       }
       const params = new URLSearchParams(window.location.search);
-      if (params.get("b") !== "19") {
-        params.set("b", "19");
-        window.location.replace(path + "?" + params.toString() + window.location.hash);
+      if (params.has("b")) {
+        params.delete("b");
+        const query = params.toString();
+        history.replaceState(null, "", path + (query ? "?" + query : "") + window.location.hash);
       }
+      const v = Date.now();
+      document.write('<link rel="stylesheet" href="css/site.css?v=' + v + '">');
+      window.__DAECHI_V = v;
     })();
   </script>
   <title>중등부 | 대치베스트 어학원</title>
@@ -25,7 +31,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site-v19.css" />
 </head>
 <body data-page="middle">
   <header class="site-header">
@@ -138,12 +143,20 @@
       <form class="admin-body" id="adminForm">
         <section class="admin-section">
           <h3>PC와 휴대폰 함께 저장</h3>
-          <p class="sync-note">한 번만 GitHub 토큰을 연결하면, 저장이 PC와 휴대폰에 같이 반영됩니다. 지금 열린 학년 페이지만 덮어쓰고, 다른 학년과 홈 본문은 그대로 둡니다.</p>
+          <p class="sync-note">한 번만 연결하면 휴대폰과 PC에 같이 저장됩니다. 지금 열린 학년만 덮어쓰고, 다른 학년과 홈 본문은 그대로 둡니다.</p>
           <div class="field">
-            <label>GitHub 토큰 <span class="hint">howmaking-prog 계정에서 발급</span></label>
-            <input name="githubToken" type="password" autocomplete="off" placeholder="ghp_ 로 시작하는 값" />
-            <a class="token-link" href="https://github.com/settings/tokens/new?scopes=public_repo&description=daechibest" target="_blank" rel="noopener noreferrer">토큰 만들기 (Generate token 클릭)</a>
-            <div class="sync-status is-off" id="syncStatus">미연결 · 토큰을 붙여넣어야 다른 기기에도 저장됩니다.</div>
+            <label>다른 기기와 함께 저장 <span class="hint">이 컴퓨터/휴대폰에만 저장됩니다</span></label>
+            <input name="githubToken" type="password" autocomplete="off" placeholder="연결 키를 붙여넣기" />
+            <ol class="token-steps">
+              <li>아래 ‘연결 키 만들기’를 눌러 새 화면을 엽니다.</li>
+              <li>초록 버튼 Generate token 을 누릅니다.</li>
+              <li>나온 글자를 복사해 위 칸에 붙여넣고 저장합니다.</li>
+            </ol>
+            <div class="token-actions">
+              <a class="token-link" href="https://github.com/settings/tokens/new?scopes=public_repo&description=daechibest" target="_blank" rel="noopener noreferrer">연결 키 만들기</a>
+              <button type="button" class="text-btn" id="tokenClear">이 기기에서 연결 키 지우기</button>
+            </div>
+            <div class="sync-status is-off" id="syncStatus">아직 연결 전입니다. 아래 방법으로 연결 키를 한 번만 저장하면 됩니다.</div>
           </div>
           <div class="field">
             <label>관리자 비밀번호 <span class="hint">바꿀 때만 입력 · 처음값은 best1369</span></label>
@@ -209,7 +222,12 @@
   </div>
 
   <div class="toast" id="toast">저장되었습니다.</div>
-  <script src="js/app-v9.js"></script>
-  <script src="js/curriculum-v10.js"></script>
+  <script>
+    (() => {
+      const v = window.__DAECHI_V || Date.now();
+      document.write('<script src="js/common.js?v=' + v + '"><\/script>');
+      document.write('<script src="js/curriculum.js?v=' + v + '"><\/script>');
+    })();
+  </script>
 </body>
 </html>
