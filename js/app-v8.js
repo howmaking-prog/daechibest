@@ -6,7 +6,7 @@ const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_PASS_DEFAULT = "best1369";
 const ADMIN_SESSION_KEY = "daechibest_admin_session";
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
-const ASSET_VER = window.SITE_VER || "34";
+const ASSET_VER = window.SITE_VER || "36";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
 const REPO_RAW_URL = "https://raw.githubusercontent.com/howmaking-prog/daechibest/main/data/site.json";
@@ -165,6 +165,7 @@ const setToken = (token) => {
   try {
     const value = String(token || "").trim();
     if (value) localStorage.setItem(TOKEN_KEY, value);
+    else localStorage.removeItem(TOKEN_KEY);
   } catch (error) {
     console.error("토큰을 저장하는 중 문제가 발생했습니다.", error);
   }
@@ -269,8 +270,14 @@ const updateSyncStatus = () => {
   status.classList.toggle("is-off", !connected);
   const mask = $("#githubTokenMask");
   const maskField = $("#tokenMaskField");
-  if (mask) mask.value = connected ? "*".repeat(token.length) : "";
+  if (mask) mask.value = connected ? "*".repeat(Math.min(token.length, 12)) : "";
   if (maskField) maskField.hidden = !connected;
+  const disconnect = $("#disconnectToken");
+  if (disconnect) disconnect.hidden = !connected;
+  const saveBtn = $("#saveBtn");
+  if (saveBtn && !saveBtn.disabled) {
+    saveBtn.textContent = connected ? "저장하고 모든 기기에 반영" : "이 기기에 저장";
+  }
   const fold = $("#syncFold");
   if (fold && fold.dataset.ready !== "1") {
     fold.open = !connected;
@@ -415,12 +422,12 @@ const readLogoFile = (file) => new Promise((resolve, reject) => {
   }
 });
 
-const showToast = (message) => {
+const showToast = (message, duration = 3200) => {
   const toast = $("#toast");
   if (!toast) return;
   toast.textContent = message;
   toast.classList.add("show");
-  window.setTimeout(() => toast.classList.remove("show"), 3200);
+  window.setTimeout(() => toast.classList.remove("show"), duration);
 };
 
 const toBase64 = (text) => {
@@ -648,7 +655,7 @@ const setAdminMode = (mode) => {
   const title = $("#adminTitle");
   if (title) title.textContent = showCur ? "커리큘럼 수정" : "홈페이지 내용 수정";
   const resetBtn = $("#resetBtn");
-  if (resetBtn) resetBtn.textContent = showCur ? "이 페이지만 되돌리기" : "홈만 되돌리기";
+  if (resetBtn) resetBtn.textContent = showCur ? "배너·공지만 되돌리기" : "홈 문구만 되돌리기";
   if (showCur && typeof window.activateCurriculumAdmin === "function") window.activateCurriculumAdmin();
 };
 
@@ -703,7 +710,52 @@ const openAdmin = async () => {
   document.body.style.overflow = "hidden";
 };
 
-const closeAdmin = () => {
+const setAdminStatus = (message, kind) => {
+  const status = $("#adminSaveStatus");
+  if (!status) return;
+  if (!message) {
+    status.hidden = true;
+    status.textContent = "";
+    delete status.dataset.kind;
+    return;
+  }
+  status.hidden = false;
+  status.dataset.kind = kind || "info";
+  status.textContent = message;
+};
+
+const homepageFieldDirty = () => {
+  const form = $("#adminForm");
+  if (!form || !editStamp.homepage) return false;
+  if (pendingLogoImage !== null) return true;
+  const tokenField = form.elements.githubToken;
+  if (tokenField && String(tokenField.value || "").trim()) return true;
+  const passDirty = ["currentPass", "newPass", "newPassAgain"].some((name) => (
+    form.elements[name] && String(form.elements[name].value || "").trim()
+  ));
+  if (passDirty) return true;
+  return Object.keys(DEFAULT_CONTENT).some((key) => {
+    const field = form.elements[key];
+    if (!field || field.type === "file") return false;
+    const saved = editStamp.homepage[key] == null ? "" : String(editStamp.homepage[key]);
+    return String(field.value).trim() !== saved.trim();
+  });
+};
+
+const isAdminDirty = () => {
+  if (typeof window.syncCurriculumTouch === "function") window.syncCurriculumTouch();
+  const touched = typeof window.getTouchedCurriculumPages === "function"
+    ? window.getTouchedCurriculumPages()
+    : [];
+  return homepageFieldDirty() || touched.length > 0;
+};
+
+const closeAdmin = ({ force } = {}) => {
+  if (!force && isAdminDirty()) {
+    const ok = window.confirm("저장하지 않은 수정이 있습니다. 닫으면 이번 수정은 사라집니다. 닫을까요?");
+    if (!ok) return;
+  }
+  setAdminStatus("");
   $("#adminOverlay").classList.remove("open");
   document.body.style.overflow = "";
 };
@@ -839,6 +891,113 @@ const initLogoAdmin = () => {
   }
 };
 
+const saveScopeLabel = (page, curriculumKeys) => {
+  const names = { elementary: "초등부", middle: "중등부", high: "고등부" };
+  const grades = (curriculumKeys || []).map((key) => names[key]).filter(Boolean);
+  if (page === "home" && grades.length) return `홈과 ${grades.join(", ")}를`;
+  if (page === "home") return "홈을";
+  return `${names[page] || "이 페이지"}를`;
+};
+
+const disconnectSharedToken = async () => {
+  const ok = window.confirm(isAdminDirty()
+    ? "연결을 끊을까요? 저장하지 않은 수정은 포함되지 않고, 다른 기기도 비밀번호만으로는 다시 연결되지 않습니다."
+    : "GitHub 연결을 끊을까요? 다른 기기도 비밀번호만으로는 다시 연결되지 않습니다.");
+  if (!ok) return;
+  if (!getToken()) {
+    setToken("");
+    updateSyncStatus();
+    setAdminStatus("이 기기에는 연결된 토큰이 없습니다.", "info");
+    return;
+  }
+  setAdminStatus("연결을 끊는 중입니다.", "busy");
+  try {
+    const remote = await pullRemote();
+    const remoteNewer = remote && Number(remote.updatedAt) > Number(memory.updatedAt || 0);
+    const payload = {
+      v: 6,
+      updatedAt: Date.now(),
+      homepage: remoteNewer ? remote.homepage : loadContent(),
+      curriculum: remoteNewer ? (remote.curriculum || memory.curriculum) : (localCurriculum() || memory.curriculum),
+      homepageUpdatedAt: remoteNewer ? remote.homepageUpdatedAt : memory.homepageUpdatedAt,
+      curriculumUpdatedAt: remoteNewer ? (remote.curriculumUpdatedAt || {}) : (memory.curriculumUpdatedAt || {}),
+      syncToken: ""
+    };
+    const pushed = await pushRemotePayload(payload);
+    if (!pushed) {
+      setAdminStatus("서버 연결 정보는 지우지 못했습니다. 토큰 권한을 확인해 주세요.", "error");
+      return;
+    }
+    setToken("");
+    updateSyncStatus();
+    setAdminStatus("연결을 끊었습니다. 다시 연결하려면 토큰을 새로 넣어야 합니다.", "ok");
+    showToast("연결을 끊었습니다.");
+  } catch (error) {
+    console.error("연결을 끊지 못했습니다.", error);
+    setAdminStatus("연결을 끊지 못했습니다. 네트워크를 확인해 주세요.", "error");
+  }
+};
+
+const changeAdminPassword = async () => {
+  const form = $("#adminForm");
+  if (!form) return;
+  const current = String(form.elements.currentPass?.value || "").trim();
+  const next = String(form.elements.newPass?.value || "").trim();
+  const again = String(form.elements.newPassAgain?.value || "").trim();
+  if (!current || current !== adminPassword()) {
+    setAdminStatus("현재 비밀번호가 맞지 않습니다.", "error");
+    return;
+  }
+  if (next.length < 4) {
+    setAdminStatus("새 비밀번호는 4자 이상으로 입력해 주세요.", "error");
+    return;
+  }
+  if (next !== again) {
+    setAdminStatus("새 비밀번호가 서로 다릅니다.", "error");
+    return;
+  }
+  try {
+    localStorage.setItem(ADMIN_PASS_KEY, next);
+  } catch (error) {
+    console.error("관리자 비밀번호를 바꾸지 못했습니다.", error);
+    setAdminStatus("비밀번호를 저장하지 못했습니다.", "error");
+    return;
+  }
+  ["currentPass", "newPass", "newPassAgain"].forEach((name) => {
+    if (form.elements[name]) form.elements[name].value = "";
+  });
+  const token = getToken();
+  if (!token) {
+    setAdminStatus("비밀번호를 바꿨습니다. 다른 기기에 이전 비밀번호가 있으면 그 기기에서도 바꿔 주세요.", "ok");
+    showToast("비밀번호를 바꿨습니다.", 5200);
+    return;
+  }
+  setAdminStatus("비밀번호를 바꿨습니다. 다른 기기용 연결 정보를 갱신하는 중입니다.", "busy");
+  try {
+    const remote = await pullRemote();
+    const remoteNewer = remote && Number(remote.updatedAt) > Number(memory.updatedAt || 0);
+    const payload = {
+      v: 6,
+      updatedAt: Date.now(),
+      homepage: remoteNewer ? remote.homepage : loadContent(),
+      curriculum: remoteNewer ? (remote.curriculum || memory.curriculum) : (localCurriculum() || memory.curriculum),
+      homepageUpdatedAt: remoteNewer ? remote.homepageUpdatedAt : memory.homepageUpdatedAt,
+      curriculumUpdatedAt: remoteNewer ? (remote.curriculumUpdatedAt || {}) : (memory.curriculumUpdatedAt || {}),
+      syncToken: await sealSyncToken(token, next)
+    };
+    const pushed = await pushRemotePayload(payload);
+    if (!pushed) {
+      setAdminStatus("이 기기 비밀번호는 바꿨습니다. 다른 기기용 연결 정보는 올리지 못했습니다.", "error");
+      return;
+    }
+    setAdminStatus("비밀번호를 바꿨습니다. 다른 기기에 이전 비밀번호가 있으면 그 기기에서도 바꿔 주세요.", "ok");
+    showToast("비밀번호를 바꿨습니다.", 5200);
+  } catch (error) {
+    console.error("비밀번호로 연결 정보를 잠그지 못했습니다.", error);
+    setAdminStatus("이 기기 비밀번호는 바꿨습니다. 다른 기기용 연결 정보는 잠그지 못했습니다.", "error");
+  }
+};
+
 const initAdmin = () => {
   initLogoAdmin();
   const openBtn = $("#adminOpen");
@@ -863,12 +1022,23 @@ const initAdmin = () => {
       updateSyncStatus();
       const data = readAdminForm();
       if (!data.academyName) {
+        setAdminStatus("학원 이름은 반드시 입력해 주세요.", "error");
         showToast("학원 이름은 반드시 입력해 주세요.");
         return;
       }
       if ($("#adminForm") && $("#adminForm").elements.heroSlogan && !data.heroSlogan) {
+        setAdminStatus("학원 이름과 슬로건은 반드시 입력해 주세요.", "error");
         showToast("학원 이름과 슬로건은 반드시 입력해 주세요.");
         return;
+      }
+      if (typeof window.syncCurriculumTouch === "function") window.syncCurriculumTouch();
+      if (typeof window.validateCurriculumAdmin === "function") {
+        const problem = window.validateCurriculumAdmin();
+        if (problem) {
+          setAdminStatus(problem, "error");
+          showToast(problem, 5200);
+          return;
+        }
       }
       const curPane = $("#curriculumAdminPane");
       const touched = typeof window.getTouchedCurriculumPages === "function"
@@ -879,6 +1049,7 @@ const initAdmin = () => {
         if (!ok) return;
       }
       saveBtn.disabled = true;
+      setAdminStatus("저장 중입니다. 서버에 반영될 때까지 이 창을 닫지 마세요.", "busy");
       try {
         const remote = await pullRemote();
         const page = currentSitePage();
@@ -917,10 +1088,16 @@ const initAdmin = () => {
         applyContent(loadContent());
         if (typeof window.renderCurriculumPage === "function") window.renderCurriculumPage();
 
+        if (typeof window.acceptCurriculumEdits === "function") window.acceptCurriculumEdits();
+        editStamp.homepage = { ...loadContent() };
+        editStamp.homepageAt = Number(memory.homepageUpdatedAt) || 0;
+        editStamp.pageAt = Number((memory.curriculumUpdatedAt || {})[page] || 0) || 0;
+        pendingLogoImage = null;
+        const savedScope = saveScopeLabel(page, curPane ? touched : [page]);
         const token = getToken();
         if (!token) {
-          closeAdmin();
-          showToast("이 기기에만 저장됐습니다. 위쪽 토큰을 연결하면 다른 기기에도 반영됩니다.");
+          closeAdmin({ force: true });
+          showToast(`${savedScope} 저장했습니다. 이 기기에만 반영됩니다. 토큰을 연결하면 다른 기기에도 올라갑니다.`, 5200);
           return;
         }
 
@@ -955,18 +1132,21 @@ const initAdmin = () => {
         }
         const synced = await pushRemotePayload(payload);
         applyContent(loadContent());
-        closeAdmin();
         if (synced && logoFailed) {
-          showToast("글은 저장했습니다. 로고 파일은 올리지 못했습니다. 토큰 권한을 확인해 주세요.");
+          closeAdmin({ force: true });
+          showToast("글은 저장했습니다. 로고 파일은 올리지 못했습니다. 토큰 권한을 확인해 주세요.", 5200);
         } else if (synced) {
-          const page = currentSitePage();
-          const labels = { home: "홈", elementary: "초등부", middle: "중등부", high: "고등부" };
-          showToast(`${labels[page] || "이 페이지"}만 저장했습니다. PC와 휴대폰에 함께 반영됩니다.`);
+          closeAdmin({ force: true });
+          showToast(`${savedScope} 저장했습니다. PC와 휴대폰에 함께 반영됩니다.`, 4200);
         } else {
-          showToast("이 기기에만 저장됐습니다. 토큰 권한을 확인해 주세요.");
+          setAdminStatus("이 기기에는 저장했습니다. 서버에는 반영되지 않았습니다. 토큰 권한을 확인해 주세요.", "error");
+          showToast("서버에는 반영되지 않았습니다. 토큰 권한을 확인해 주세요.", 5200);
         }
       } finally {
         saveBtn.disabled = false;
+        const status = $("#adminSaveStatus");
+        if (status && status.dataset.kind === "busy") setAdminStatus("");
+        updateSyncStatus();
       }
     });
   }
@@ -977,7 +1157,7 @@ const initAdmin = () => {
         const ok = window.confirm("이 페이지의 배너와 공지만 처음 예시 내용으로 되돌릴까요?\n시간표와 학원 이름·전화·주소는 그대로 둡니다.\n저장해야 반영됩니다.");
         if (!ok) return;
         if (typeof window.resetCurriculumAdmin === "function") window.resetCurriculumAdmin();
-        showToast("이 페이지만 되돌렸습니다. 저장을 눌러야 반영됩니다.");
+        showToast("배너와 공지를 예시로 되돌렸습니다. 시간표는 그대로입니다. 저장을 눌러야 반영됩니다.", 5200);
         return;
       }
       const ok = window.confirm("홈 페이지 문구만 처음 내용으로 되돌릴까요?\n초·중·고 시간표와 공지는 그대로 둡니다.\n저장해야 반영됩니다.");
@@ -989,8 +1169,18 @@ const initAdmin = () => {
       showToast("홈 문구만 되돌렸습니다. 저장을 눌러야 반영됩니다.");
     });
   }
+  const disconnectBtn = $("#disconnectToken");
+  if (disconnectBtn && disconnectBtn.dataset.bound !== "1") {
+    disconnectBtn.dataset.bound = "1";
+    disconnectBtn.addEventListener("click", disconnectSharedToken);
+  }
+  const changePassBtn = $("#changePassBtn");
+  if (changePassBtn && changePassBtn.dataset.bound !== "1") {
+    changePassBtn.dataset.bound = "1";
+    changePassBtn.addEventListener("click", changeAdminPassword);
+  }
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeAdmin();
+    if (event.key === "Escape" && $("#adminOverlay") && $("#adminOverlay").classList.contains("open")) closeAdmin();
   });
   const modeTabs = $("#adminModeTabs");
   if (modeTabs && modeTabs.dataset.bound !== "1") {

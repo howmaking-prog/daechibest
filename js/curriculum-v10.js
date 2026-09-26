@@ -458,6 +458,8 @@ const rebuildTimetableAdmin = (form) => {
   const grades = adminDraft.grades || [];
   if (adminGradeIndex >= grades.length) adminGradeIndex = 0;
   const grade = grades[adminGradeIndex] || { terms: [] };
+  const columnNames = (grade.columns && grade.columns.length ? grade.columns : (adminDraft.columns || ["요일", "시간", "수업"]))
+    .map((name, index) => String(name || "").trim() || ["요일", "시간", "수업"][index] || `${index + 1}열`);
   const terms = grade.terms && grade.terms.length ? grade.terms : [emptyTerm()];
   if (!grade.terms || !grade.terms.length) grade.terms = terms;
   if (adminTermIndex >= terms.length) adminTermIndex = 0;
@@ -482,9 +484,9 @@ const rebuildTimetableAdmin = (form) => {
           </div>
         </div>
         <div class="time-row-fields">
-          <div class="field"><input name="row${r}c1" aria-label="1열" /></div>
-          <div class="field"><input name="row${r}c2" aria-label="2열" /></div>
-          <div class="field"><input name="row${r}c3" aria-label="3열" /></div>
+          <div class="field"><label class="time-col-label" data-col-label="1">${escapeHtml(columnNames[0])}</label><input name="row${r}c1" aria-label="${escapeHtml(columnNames[0])}" /></div>
+          <div class="field"><label class="time-col-label" data-col-label="2">${escapeHtml(columnNames[1])}</label><input name="row${r}c2" aria-label="${escapeHtml(columnNames[1])}" /></div>
+          <div class="field"><label class="time-col-label" data-col-label="3">${escapeHtml(columnNames[2])}</label><input name="row${r}c3" aria-label="${escapeHtml(columnNames[2])}" /></div>
         </div>
       </div>
     `;
@@ -530,8 +532,21 @@ const bindTimetableAdminEvents = (form) => {
   const wrap = form.querySelector("#timetableAdminFields");
   if (!wrap || wrap.dataset.bound === "1") return;
   wrap.dataset.bound = "1";
+  wrap.addEventListener("input", (event) => {
+    const name = event.target && event.target.name;
+    const index = { col1: 0, col2: 1, col3: 2 }[name];
+    if (index == null) return;
+    const text = String(event.target.value || "").trim() || ["요일", "시간", "수업"][index];
+    wrap.querySelectorAll(`[data-col-label="${index + 1}"]`).forEach((label) => {
+      label.textContent = text;
+    });
+    wrap.querySelectorAll(`[name$="c${index + 1}"]`).forEach((input) => {
+      if (String(input.name || "").startsWith("row")) input.setAttribute("aria-label", text);
+    });
+  });
   wrap.addEventListener("click", (event) => {
     if (!adminDraft) return;
+    try {
     const pick = event.target.closest("[data-admin-grade]");
     if (pick) {
       const nextIndex = Number(pick.dataset.adminGrade);
@@ -629,6 +644,9 @@ const bindTimetableAdminEvents = (form) => {
       if (!term || !Array.isArray(term.rows)) return;
       term.rows.splice(ri, 1);
     });
+  } finally {
+    syncCurriculumTouch();
+  }
   });
 };
 
@@ -1009,6 +1027,7 @@ const bindSlideNoticeAdmin = (form) => {
     slidesWrap.dataset.bound = "1";
     slidesWrap.addEventListener("click", (event) => {
       if (!adminDraft) return;
+      try {
       const pick = event.target.closest("[data-slide-pick]");
       if (pick) {
         const next = Number(pick.dataset.slidePick);
@@ -1048,6 +1067,9 @@ const bindSlideNoticeAdmin = (form) => {
       adminDraft.slides = swapItems(readSlidesFromForm(form), i, i + 1);
       adminSlideIndex = Math.min(adminDraft.slides.length - 1, i + 1);
       rebuildSlidesAdmin(form);
+    } finally {
+      syncCurriculumTouch();
+    }
     });
   }
   const noticesWrap = form.querySelector("#noticesAdminFields");
@@ -1055,12 +1077,17 @@ const bindSlideNoticeAdmin = (form) => {
     noticesWrap.dataset.bound = "1";
     noticesWrap.addEventListener("click", (event) => {
       if (!adminDraft) return;
+      try {
       const pick = event.target.closest("[data-notice-pick]");
       if (pick) {
         const next = Number(pick.dataset.noticePick);
         if (next === adminNoticeIndex) return;
-        adminDraft.notices = readNoticesFromForm(form);
-        adminNoticeIndex = next;
+        const notices = readNoticesFromForm(form);
+        const leaving = notices[adminNoticeIndex];
+        const dropped = leaving && !(leaving.title || "").trim();
+        if (dropped) notices.splice(adminNoticeIndex, 1);
+        adminDraft.notices = notices;
+        adminNoticeIndex = dropped && adminNoticeIndex < next ? next - 1 : next;
         rebuildNoticesAdmin(form);
         return;
       }
@@ -1093,6 +1120,9 @@ const bindSlideNoticeAdmin = (form) => {
       adminDraft.notices = swapItems(readNoticesFromForm(form), i, i + 1);
       adminNoticeIndex = Math.min(adminDraft.notices.length - 1, i + 1);
       rebuildNoticesAdmin(form);
+    } finally {
+      syncCurriculumTouch();
+    }
     });
   }
 };
@@ -1111,6 +1141,130 @@ const bindCurriculumTabs = () => {
   });
 };
 
+// 관리자를 연 뒤 실제로 글자가 바뀐 학년만 저장합니다.
+const curriculumBaseline = {};
+const curriculumDrafts = {};
+const NOTICE_DATE = /^(\d{4})[.\-](\d{2})[.\-](\d{2})$/;
+const DEPT_LABELS = { elementary: "초등부", middle: "중등부", high: "고등부" };
+
+const normalizeNoticeDate = (value) => {
+  const match = String(value || "").trim().match(NOTICE_DATE);
+  if (!match) return "";
+  return `${match[1]}.${match[2]}.${match[3]}`;
+};
+
+const isSafeBannerLink = (value) => {
+  const link = String(value || "").trim();
+  if (!link) return true;
+  if (/\s/.test(link) || /^(javascript|data):/i.test(link)) return false;
+  if (link.startsWith("#")) return true;
+  if (/^tel:\d[\d-]*$/i.test(link)) return true;
+  if (/^https?:\/\/\S+$/i.test(link)) return true;
+  return /^(index|elementary|middle|high|notice)\.html([#?]\S*)?$/i.test(link);
+};
+
+const pageFingerprint = (page, key) => {
+  const normalized = normalizePage(deepCopy(page || {}), key);
+  const notices = (normalized.notices || [])
+    .filter((item) => (item.title || "").trim())
+    .map((item) => ({
+      id: item.id || "",
+      title: (item.title || "").trim(),
+      date: normalizeNoticeDate(item.date) || String(item.date || "").trim(),
+      body: item.body || "",
+      important: !!item.important
+    }));
+  const slides = (normalized.slides || []).map((item) => ({
+    kicker: item.kicker || "",
+    title: item.title || "",
+    sub: item.sub || "",
+    note: item.note || "",
+    cta: item.cta || "",
+    ctaLink: String(item.ctaLink || "").trim()
+  }));
+  const grades = (normalized.grades || []).map((grade) => ({
+    name: grade.name || "",
+    columns: grade.columns || [],
+    terms: (grade.terms || []).map((term) => ({
+      name: term.name || "",
+      period: term.period || "",
+      rows: term.rows || []
+    }))
+  }));
+  return JSON.stringify({ slides, notices, grades, columns: normalized.columns || [] });
+};
+
+const currentCurriculumDraft = () => {
+  const form = document.querySelector("#adminForm");
+  if (!form || !adminDraft) return null;
+  const next = deepCopy(adminDraft);
+  next.slides = readSlidesFromForm(form);
+  next.notices = readNoticesFromForm(form)
+    .map((item) => ({ ...item, date: normalizeNoticeDate(item.date) || String(item.date || "").trim() }))
+    .filter((item) => (item.title || "").trim());
+  Object.assign(next, readTimetableAdmin(form, next));
+  return next;
+};
+
+const stashCurriculumDraft = () => {
+  const draft = currentCurriculumDraft();
+  if (!draft) return null;
+  curriculumDrafts[currentPage()] = draft;
+  return draft;
+};
+
+const syncCurriculumTouch = () => {
+  const key = currentPage();
+  const draft = currentCurriculumDraft();
+  if (!draft || curriculumBaseline[key] == null) return;
+  if (pageFingerprint(draft, key) !== curriculumBaseline[key]) touchedCurriculumPages.add(key);
+  else touchedCurriculumPages.delete(key);
+};
+
+const validateCurriculumDraft = (draft, key) => {
+  const label = DEPT_LABELS[key] || "커리큘럼";
+  const notices = draft && Array.isArray(draft.notices) ? draft.notices : [];
+  for (let i = 0; i < notices.length; i += 1) {
+    const item = notices[i];
+    if (!(item.title || "").trim()) continue;
+    if (!normalizeNoticeDate(item.date)) {
+      return `${label} 공지 ${i + 1}의 날짜는 2026.08.20 형식으로 입력해 주세요.`;
+    }
+  }
+  const slides = draft && Array.isArray(draft.slides) ? draft.slides : [];
+  for (let i = 0; i < slides.length; i += 1) {
+    if (!isSafeBannerLink(slides[i].ctaLink)) {
+      return `${label} 배너 ${i + 1}의 버튼 링크를 확인해 주세요. 페이지 주소, #위치, 전화, http 주소만 사용할 수 있습니다.`;
+    }
+  }
+  return "";
+};
+
+const showCurriculumIssue = (key, tab) => {
+  const modeBtn = document.querySelector('[data-admin-mode="curriculum"]');
+  if (modeBtn && !modeBtn.classList.contains("is-active")) modeBtn.click();
+  const deptBtn = document.querySelector(`[data-curriculum-page="${key}"]`);
+  if (deptBtn && currentPage() !== key) deptBtn.click();
+  const tabBtn = document.querySelector(`#curriculumTabs [data-admin-tab="${tab}"]`);
+  if (tabBtn) tabBtn.click();
+};
+
+const validateCurriculumAdmin = () => {
+  stashCurriculumDraft();
+  syncCurriculumTouch();
+  const keys = [...touchedCurriculumPages];
+  for (let i = 0; i < keys.length; i += 1) {
+    const key = keys[i];
+    const draft = curriculumDrafts[key];
+    if (!draft) continue;
+    const problem = validateCurriculumDraft(draft, key);
+    if (!problem) continue;
+    showCurriculumIssue(key, problem.includes("배너") ? "banner" : "notice");
+    return problem;
+  }
+  return "";
+};
+
 const bindDeptPicks = () => {
   const picks = document.querySelector("#curriculumDeptPicks");
   if (!picks || picks.dataset.bound === "1") return;
@@ -1120,7 +1274,8 @@ const bindDeptPicks = () => {
     if (!btn) return;
     const page = btn.dataset.curriculumPage;
     if (!page || page === currentPage()) return;
-    if (touchedCurriculumPages.has(currentPage())) saveCurriculumAdmin();
+    stashCurriculumDraft();
+    syncCurriculumTouch();
     adminCurriculumPage = page;
     picks.querySelectorAll("[data-curriculum-page]").forEach((el) => {
       el.classList.toggle("is-active", el === btn);
@@ -1133,19 +1288,18 @@ const bindCurriculumDirty = () => {
   const form = document.querySelector("#curriculumForm");
   if (!form || form.dataset.dirtyBound === "1") return;
   form.dataset.dirtyBound = "1";
-  const mark = () => touchedCurriculumPages.add(currentPage());
+  const mark = () => syncCurriculumTouch();
   form.addEventListener("input", mark);
   form.addEventListener("change", mark);
-  form.addEventListener("click", (event) => {
-    if (event.target.closest("button, input, textarea, select")) mark();
-  });
 };
 
 const fillCurriculumAdmin = () => {
   const form = document.querySelector("#adminForm");
   if (!form) return;
-  const data = currentData();
-  adminDraft = normalizePage(deepCopy(data), currentPage());
+  bindCurriculumDirty();
+  const key = currentPage();
+  const data = curriculumDrafts[key] || currentData();
+  adminDraft = normalizePage(deepCopy(data), key);
   adminGradeIndex = 0;
   adminTermIndex = 0;
   adminSlideIndex = 0;
@@ -1159,18 +1313,31 @@ const fillCurriculumAdmin = () => {
   rebuildSlidesAdmin(form);
   rebuildNoticesAdmin(form);
   fillTimetableAdmin(form, adminDraft, { keepDraft: true });
+  if (curriculumBaseline[key] == null) {
+    const opened = currentCurriculumDraft();
+    if (opened) curriculumBaseline[key] = pageFingerprint(opened, key);
+  }
+  syncCurriculumTouch();
 };
 
 const saveCurriculumAdmin = () => {
   const form = document.querySelector("#adminForm");
   if (!form) return true;
+  stashCurriculumDraft();
+  syncCurriculumTouch();
+  if (!touchedCurriculumPages.size) return true;
   const all = loadCurriculum();
-  const page = currentPage();
-  const next = deepCopy(all[page]);
-  next.slides = readSlidesFromForm(form);
-  next.notices = readNoticesFromForm(form);
-  Object.assign(next, readTimetableAdmin(form, next));
-  all[page] = next;
+  touchedCurriculumPages.forEach((key) => {
+    const draft = curriculumDrafts[key];
+    if (!draft || !all[key]) return;
+    const next = deepCopy(all[key]);
+    next.slides = draft.slides || [];
+    next.notices = draft.notices || [];
+    if (draft.columns) next.columns = draft.columns;
+    if (draft.timetable) next.timetable = draft.timetable;
+    if (draft.grades) next.grades = draft.grades;
+    all[key] = next;
+  });
   return saveCurriculum(all);
 };
 
@@ -1190,6 +1357,8 @@ const resetCurriculumAdmin = () => {
   rebuildSlidesAdmin(form);
   rebuildNoticesAdmin(form);
   fillTimetableAdmin(form, adminDraft, { keepDraft: true });
+  curriculumDrafts[currentPage()] = currentCurriculumDraft();
+  syncCurriculumTouch();
 };
 
 const DEPT_FILES = {
@@ -1271,10 +1440,15 @@ const renderCurriculumPage = () => {
 };
 
 window.fillCurriculumAdmin = fillCurriculumAdmin;
-window.saveCurriculumAdmin = () => {
-  const pane = document.querySelector("#curriculumAdminPane");
-  if (pane && !touchedCurriculumPages.has(currentPage())) return true;
-  return saveCurriculumAdmin();
+window.saveCurriculumAdmin = () => saveCurriculumAdmin();
+window.syncCurriculumTouch = syncCurriculumTouch;
+window.validateCurriculumAdmin = validateCurriculumAdmin;
+window.acceptCurriculumEdits = () => {
+  stashCurriculumDraft();
+  Object.keys(curriculumDrafts).forEach((key) => {
+    if (curriculumDrafts[key]) curriculumBaseline[key] = pageFingerprint(curriculumDrafts[key], key);
+  });
+  touchedCurriculumPages.clear();
 };
 window.resetCurriculumAdmin = resetCurriculumAdmin;
 window.activateCurriculumAdmin = () => {
@@ -1289,6 +1463,8 @@ window.activateCurriculumAdmin = () => {
 window.getTouchedCurriculumPages = () => [...touchedCurriculumPages];
 window.resetTouchedCurriculum = () => {
   touchedCurriculumPages.clear();
+  Object.keys(curriculumBaseline).forEach((key) => { delete curriculumBaseline[key]; });
+  Object.keys(curriculumDrafts).forEach((key) => { delete curriculumDrafts[key]; });
   adminCurriculumPage = "elementary";
 };
 window.renderCurriculumPage = renderCurriculumPage;

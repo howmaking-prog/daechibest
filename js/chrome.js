@@ -7,7 +7,7 @@ const deptNames = {
   notice: "공지"
 };
 
-const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "34"}`;
+const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "36"}`;
 
 const header = () => {
   const page = document.body.dataset.page || "home";
@@ -73,6 +73,36 @@ const adminLock = () => `
     </form>
   </div>`;
 
+const syncAccount = () => `
+  <div class="admin-sync-actions">
+    <button type="button" class="text-btn" id="disconnectToken" hidden>연결 끊기</button>
+  </div>
+  <div class="admin-pass-change">
+    <p class="sync-note">이 기기의 관리자 비밀번호입니다. 다른 기기에 이미 저장돼 있으면, 그 기기에서도 같은 비밀번호로 바꿔 주세요.</p>
+    <div class="field">
+      <label>현재 비밀번호</label>
+      <input type="password" name="currentPass" autocomplete="current-password" />
+    </div>
+    <div class="field">
+      <label>새 비밀번호</label>
+      <input type="password" name="newPass" autocomplete="new-password" />
+    </div>
+    <div class="field">
+      <label>새 비밀번호 확인</label>
+      <input type="password" name="newPassAgain" autocomplete="new-password" />
+    </div>
+    <button type="button" class="admin-mini-btn" id="changePassBtn">비밀번호 변경</button>
+  </div>`;
+
+const adminFoot = (resetLabel) => `
+  <div class="admin-foot">
+    <p class="admin-save-status" id="adminSaveStatus" hidden></p>
+    <div class="admin-foot-actions">
+      <button class="reset-btn" id="resetBtn" type="button">${resetLabel}</button>
+      <button class="save-btn" id="saveBtn" type="button">이 기기에 저장</button>
+    </div>
+  </div>`;
+
 const curriculumEditor = (deptPicks) => `
   ${deptPicks ? `<div class="admin-pills" id="curriculumDeptPicks">
     <button type="button" class="admin-pill is-active" data-curriculum-page="elementary">초등부</button>
@@ -97,7 +127,7 @@ const curriculumEditor = (deptPicks) => `
     </section>
     <section class="admin-section admin-pane" data-admin-pane="notice">
       <h3>공지사항</h3>
-      <p class="admin-hint">위에서 공지를 고르면 그 글만 수정합니다. 제목을 비우면 목록에서 빠집니다.</p>
+      <p class="admin-hint">위에서 공지를 고르면 그 글만 수정합니다. 제목을 비우면 저장할 때 목록에서 삭제됩니다. 날짜는 2026.08.20 형식입니다.</p>
       <div id="noticesAdminFields"></div>
     </section>
   </div>`;
@@ -130,14 +160,12 @@ const deptAdmin = () => `
               <input name="githubToken" type="password" autocomplete="off" placeholder="ghp_ 로 시작하는 값" />
               <a class="token-link" href="https://github.com/settings/tokens/new?scopes=public_repo&description=daechibest" target="_blank" rel="noopener noreferrer">토큰 만들기 (Generate token 클릭)</a>
             </div>
+            ${syncAccount()}
           </div>
         </details>
         ${curriculumEditor(false)}
       </form>
-      <div class="admin-foot">
-        <button class="reset-btn" id="resetBtn" type="button">이 페이지만 되돌리기</button>
-        <button class="save-btn" id="saveBtn" type="button">저장하고 모든 기기에 반영</button>
-      </div>
+      ${adminFoot("배너·공지만 되돌리기")}
     </aside>
   </div>`;
 
