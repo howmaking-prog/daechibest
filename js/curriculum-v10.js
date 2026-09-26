@@ -233,19 +233,50 @@ const GRADE_NAMES = {
 let selectedGradeIndex = 0;
 let selectedTermIndex = 0;
 let adminGradeIndex = 0;
+let adminTermIndex = 0;
+let adminSlideIndex = 0;
+let adminNoticeIndex = 0;
 let adminDraft = null;
+let scheduleShowsAll = false;
+let noticesExpanded = false;
 
-const emptyTerm = () => ({ period: "", rows: [] });
+const emptyTerm = () => ({ name: "새 학기", period: "", rows: [] });
+const fallbackColumns = ["요일", "시간", "수업"];
 
-const padTerms = (terms, count) => {
-  const list = Array.isArray(terms) ? terms : [];
-  return Array.from({ length: count }, (_, i) => {
-    const term = list[i] || emptyTerm();
+const copyColumns = (cols, fallback) => {
+  const source = Array.isArray(cols) && cols.length ? cols : (fallback || fallbackColumns);
+  return [0, 1, 2].map((i) => (source[i] == null ? fallbackColumns[i] : String(source[i])));
+};
+
+const normalizeTerm = (term, index, shared) => {
+  const base = term || {};
+  const fromShared = shared || {};
+  return {
+    name: String(base.name || fromShared.name || `학기 ${index + 1}`),
+    period: String(base.period || ""),
+    rows: Array.isArray(base.rows) ? deepCopy(base.rows) : []
+  };
+};
+
+// 학기 이름·열 이름·줄은 학년마다 따로 둡니다. 예전 저장본은 페이지 공통 값을 학년별로 복사합니다.
+const buildGrade = (prev, index, names, timetable, pageColumns) => {
+  const shared = timetable || [];
+  const own = Array.isArray(prev && prev.terms) ? prev.terms : [];
+  const count = own.length || shared.length || 1;
+  const terms = Array.from({ length: count }, (_, i) => {
+    if (own.length) return normalizeTerm(own[i], i, shared[i]);
+    const item = shared[i] || {};
     return {
-      period: term.period || "",
-      rows: Array.isArray(term.rows) ? deepCopy(term.rows) : []
+      name: item.name || `학기 ${i + 1}`,
+      period: index === 0 ? (item.period || "") : "",
+      rows: index === 0 && Array.isArray(item.rows) ? deepCopy(item.rows) : []
     };
   });
+  return {
+    name: ((prev && prev.name) || "").trim() || names[index] || `학년 ${index + 1}`,
+    columns: copyColumns(prev && prev.columns, pageColumns),
+    terms
+  };
 };
 
 // 입력칸이 있으면 빈 값도 그대로 쓰고, 칸이 없을 때만 예전 값을 지킵니다.
@@ -264,35 +295,15 @@ const normalizePage = (page, key) => {
     : deepCopy((DEFAULT_CURRICULUM[key] || DEFAULT_CURRICULUM.elementary).timetable);
   const savedGrades = Array.isArray(next.grades) ? next.grades.filter(Boolean) : [];
   const hasSavedGrades = savedGrades.some((grade) => Array.isArray(grade.terms));
-  const termCount = Math.max(
-    timetable.length,
-    ...savedGrades.map((grade) => (Array.isArray(grade.terms) ? grade.terms.length : 0)),
-    1
-  );
-  next.timetable = Array.from({ length: termCount }, (_, i) => {
-    const item = timetable[i] || {};
-    return {
-      name: item.name || `학기 ${i + 1}`,
-      period: item.period || "",
-      rows: Array.isArray(item.rows) ? item.rows : []
-    };
-  });
-  if (hasSavedGrades) {
-    next.grades = savedGrades.map((prev, i) => ({
-      name: (prev.name || "").trim() || names[i] || `학년 ${i + 1}`,
-      terms: padTerms(prev.terms, termCount)
-    }));
-    return next;
-  }
-  next.grades = names.map((name, i) => {
-    const fallback = i === 0
-      ? next.timetable.map((item) => ({
-          period: item.period || "",
-          rows: deepCopy(item.rows || [])
-        }))
-      : next.timetable.map(() => emptyTerm());
-    return { name, terms: padTerms(fallback, termCount) };
-  });
+  next.timetable = timetable.map((item, i) => ({
+    name: item.name || `학기 ${i + 1}`,
+    period: item.period || "",
+    rows: Array.isArray(item.rows) ? item.rows : []
+  }));
+  const pageColumns = copyColumns(next.columns, fallbackColumns);
+  next.columns = pageColumns;
+  const source = hasSavedGrades ? savedGrades : names.map((name) => ({ name }));
+  next.grades = source.map((prev, i) => buildGrade(prev, i, names, next.timetable, pageColumns));
   return next;
 };
 
@@ -360,7 +371,8 @@ const writeUnifiedCurriculum = (curriculum) => {
     homepage: prev.homepage || null,
     curriculum,
     homepageUpdatedAt: prev.homepageUpdatedAt || 0,
-    curriculumUpdatedAt: prev.curriculumUpdatedAt || {}
+    curriculumUpdatedAt: prev.curriculumUpdatedAt || {},
+    syncToken: typeof prev.syncToken === "string" ? prev.syncToken : ""
   };
   localStorage.setItem(UNIFIED_STORE_KEY, JSON.stringify(payload));
   try {
@@ -390,66 +402,53 @@ const currentGrade = (data) => {
 };
 
 const fillGradeFields = (form, data, gradeIndex) => {
-  const cols = (data && data.columns) || ["", "", ""];
+  const grade = ((data && data.grades) || [])[gradeIndex] || { terms: [] };
+  const cols = grade.columns || (data && data.columns) || ["", "", ""];
+  const term = (grade.terms || [])[adminTermIndex] || emptyTerm();
+  if (form.elements.gradeName) form.elements.gradeName.value = grade.name || "";
   if (form.elements.col1) form.elements.col1.value = cols[0] || "";
   if (form.elements.col2) form.elements.col2.value = cols[1] || "";
   if (form.elements.col3) form.elements.col3.value = cols[2] || "";
-  const grade = ((data && data.grades) || [])[gradeIndex] || { terms: [] };
-  (data.timetable || []).forEach((item, i) => {
-    const n = i + 1;
-    const term = (grade.terms || [])[i] || {};
-    const block = form.querySelector(`[data-term="${n}"]`);
-    const rowCount = Number(block?.dataset.rows || 0);
-    if (form.elements[`time${n}Name`]) form.elements[`time${n}Name`].value = item.name || "";
-    if (form.elements[`time${n}Period`]) form.elements[`time${n}Period`].value = term.period || "";
-    for (let r = 1; r <= rowCount; r += 1) {
-      const row = (term.rows && term.rows[r - 1]) || ["", "", ""];
-      for (let c = 1; c <= 3; c += 1) {
-        const field = form.elements[`time${n}r${r}c${c}`];
-        if (field) field.value = row[c - 1] || "";
-      }
+  if (form.elements.termName) form.elements.termName.value = term.name || "";
+  if (form.elements.termPeriod) form.elements.termPeriod.value = term.period || "";
+  const block = form.querySelector("[data-term]");
+  const rowCount = Number(block?.dataset.rows || 0);
+  for (let r = 1; r <= rowCount; r += 1) {
+    const row = (term.rows && term.rows[r - 1]) || ["", "", ""];
+    for (let c = 1; c <= 3; c += 1) {
+      const field = form.elements[`row${r}c${c}`];
+      if (field) field.value = row[c - 1] || "";
     }
-  });
+  }
 };
 
 const readVisibleGradeIntoData = (form, pageData, gradeIndex, keepEmpty = true) => {
   const next = deepCopy(pageData);
-  const termCount = (next.timetable || []).length;
-  next.timetable = Array.from({ length: termCount }, (_, i) => {
-    const n = i + 1;
-    const prev = next.timetable[i] || {};
-    return {
-      ...prev,
-      name: withFormText(form, `time${n}Name`, prev.name || "")
-    };
-  });
+  if (!next.grades || !next.grades[gradeIndex]) return next;
+  const grade = next.grades[gradeIndex];
+  if (form.elements.gradeName) grade.name = withFormText(form, "gradeName", grade.name || "");
   if (form.elements.col1) {
-    next.columns = [
+    grade.columns = [
       withFormText(form, "col1", ""),
       withFormText(form, "col2", ""),
       withFormText(form, "col3", "")
     ];
   }
-  (next.grades || []).forEach((grade, i) => {
-    grade.name = withFormText(form, `gradeName${i}`, grade.name || "");
-  });
-  if (!next.grades || !next.grades[gradeIndex]) return next;
-  next.grades[gradeIndex] = {
-    ...next.grades[gradeIndex],
-    terms: next.timetable.map((_, i) => {
-      const n = i + 1;
-      const block = form.querySelector(`[data-term="${n}"]`);
-      const rowCount = Number(block?.dataset.rows || 0);
-      const rows = [];
-      for (let r = 1; r <= rowCount; r += 1) {
-        const cells = [1, 2, 3].map((c) => (form.elements[`time${n}r${r}c${c}`]?.value || "").trim());
-        if (keepEmpty || cells.some((cell) => cell)) rows.push(cells);
-      }
-      return {
-        period: withFormText(form, `time${n}Period`, ""),
-        rows
-      };
-    })
+  const block = form.querySelector("[data-term]");
+  if (!block) return next;
+  const termIndex = Number(block.dataset.termIndex);
+  const rowCount = Number(block.dataset.rows || 0);
+  const rows = [];
+  for (let r = 1; r <= rowCount; r += 1) {
+    const cells = [1, 2, 3].map((c) => (form.elements[`row${r}c${c}`]?.value || "").trim());
+    if (keepEmpty || cells.some((cell) => cell)) rows.push(cells);
+  }
+  grade.terms = grade.terms || [];
+  const prev = grade.terms[termIndex] || emptyTerm();
+  grade.terms[termIndex] = {
+    name: withFormText(form, "termName", prev.name || ""),
+    period: withFormText(form, "termPeriod", prev.period || ""),
+    rows
   };
   return next;
 };
@@ -458,68 +457,66 @@ const rebuildTimetableAdmin = (form) => {
   const wrap = form.querySelector("#timetableAdminFields");
   if (!wrap || !adminDraft) return;
   const grades = adminDraft.grades || [];
-  const timetable = adminDraft.timetable || [];
-  const grade = grades[adminGradeIndex] || { terms: [] };
   if (adminGradeIndex >= grades.length) adminGradeIndex = 0;
-  const columnFields = `
-    <div class="time-row-fields">
-      <div class="field"><label>1열 이름</label><input name="col1" placeholder="요일" /></div>
-      <div class="field"><label>2열 이름</label><input name="col2" placeholder="시간" /></div>
-      <div class="field"><label>3열 이름</label><input name="col3" placeholder="수업" /></div>
-    </div>
-    <p class="time-row-label">학년</p>
-    <div class="admin-grade-list" id="adminGradeTabs">
-      ${grades.map((item, i) => `
-        <div class="admin-grade-item ${i === adminGradeIndex ? "is-active" : ""}">
-          <button type="button" class="admin-grade-pick" data-admin-grade="${i}">선택</button>
-          <input name="gradeName${i}" value="${escapeHtml(item.name || "")}" aria-label="학년 이름" />
-          <button type="button" class="admin-mini-btn" data-remove-grade="${i}" ${grades.length <= 1 ? "disabled" : ""}>삭제</button>
-        </div>
-      `).join("")}
-    </div>
-    <div class="admin-inline-actions">
-      <button type="button" class="admin-mini-btn" data-add-grade>학년 추가</button>
-    </div>
-  `;
-  const blocks = timetable.map((item, i) => {
-    const n = i + 1;
-    const term = (grade.terms || [])[i] || emptyTerm();
-    const rowCount = Math.max((term.rows || []).length, 1);
-    const rows = Array.from({ length: rowCount }, (_, ri) => {
-      const r = ri + 1;
-      return `
-        <div class="time-row-wrap">
-          <div class="time-row-head">
-            <p class="time-row-label">${r}줄</p>
-            <button type="button" class="admin-mini-btn" data-remove-row="${i}:${ri}">이 줄 삭제</button>
-          </div>
-          <div class="time-row-fields">
-            <div class="field"><label>1열</label><input name="time${n}r${r}c1" /></div>
-            <div class="field"><label>2열</label><input name="time${n}r${r}c2" /></div>
-            <div class="field"><label>3열</label><input name="time${n}r${r}c3" /></div>
-          </div>
-        </div>
-      `;
-    }).join("");
+  const grade = grades[adminGradeIndex] || { terms: [] };
+  const terms = grade.terms && grade.terms.length ? grade.terms : [emptyTerm()];
+  if (!grade.terms || !grade.terms.length) grade.terms = terms;
+  if (adminTermIndex >= terms.length) adminTermIndex = 0;
+  const term = terms[adminTermIndex] || emptyTerm();
+  const rowCount = Math.max((term.rows || []).length, 1);
+  const gradePills = grades.map((item, i) => `
+    <button type="button" class="admin-pill ${i === adminGradeIndex ? "is-active" : ""}" data-admin-grade="${i}">${escapeHtml(item.name || `학년 ${i + 1}`)}</button>
+  `).join("");
+  const termPills = terms.map((item, i) => `
+    <button type="button" class="admin-pill ${i === adminTermIndex ? "is-active" : ""}" data-admin-term="${i}">${escapeHtml(item.name || `학기 ${i + 1}`)}</button>
+  `).join("");
+  const rows = Array.from({ length: rowCount }, (_, ri) => {
+    const r = ri + 1;
     return `
-      <div class="time-block" data-term="${n}" data-rows="${rowCount}">
-        <div class="time-block-head">
-          <h4>시간표 ${n}</h4>
-          <button type="button" class="admin-mini-btn" data-remove-term="${i}" ${timetable.length <= 1 ? "disabled" : ""}>이 학기 삭제</button>
+      <div class="time-row-wrap">
+        <div class="time-row-head">
+          <p class="time-row-label">${r}줄</p>
+          <div class="admin-inline-actions">
+            <button type="button" class="admin-mini-btn" data-row-up="${adminTermIndex}:${ri}" ${ri === 0 ? "disabled" : ""}>위로</button>
+            <button type="button" class="admin-mini-btn" data-row-down="${adminTermIndex}:${ri}" ${ri === rowCount - 1 ? "disabled" : ""}>아래로</button>
+            <button type="button" class="admin-mini-btn" data-remove-row="${adminTermIndex}:${ri}">삭제</button>
+          </div>
         </div>
-        <div class="field"><label>왼쪽 목록 이름</label><input name="time${n}Name" placeholder="1학기" /></div>
-        <div class="field"><label>부제</label><input name="time${n}Period" placeholder="3월 – 6월" /></div>
-        ${rows}
-        <div class="admin-inline-actions">
-          <button type="button" class="admin-mini-btn" data-add-row="${i}">줄 추가</button>
+        <div class="time-row-fields">
+          <div class="field"><input name="row${r}c1" aria-label="1열" /></div>
+          <div class="field"><input name="row${r}c2" aria-label="2열" /></div>
+          <div class="field"><input name="row${r}c3" aria-label="3열" /></div>
         </div>
       </div>
     `;
   }).join("");
-  wrap.innerHTML = `${columnFields}${blocks}
-    <div class="admin-inline-actions">
-      <button type="button" class="admin-mini-btn" data-add-term>학기 추가</button>
-    </div>`;
+  wrap.innerHTML = `
+    <p class="time-row-label">학년</p>
+    <div class="admin-pills">${gradePills}<button type="button" class="admin-pill" data-add-grade>학년 추가</button></div>
+    <div class="admin-split">
+      <div class="field"><label>학년 이름</label><input name="gradeName" /></div>
+      <button type="button" class="admin-mini-btn" data-remove-grade ${grades.length <= 1 ? "disabled" : ""}>이 학년 삭제</button>
+    </div>
+    <p class="time-row-label">학기</p>
+    <div class="admin-pills">${termPills}<button type="button" class="admin-pill" data-add-term>학기 추가</button></div>
+    <div class="time-block" data-term="1" data-term-index="${adminTermIndex}" data-rows="${rowCount}">
+      <div class="admin-split">
+        <div class="field"><label>학기 이름</label><input name="termName" placeholder="1학기" /></div>
+        <div class="field"><label>부제</label><input name="termPeriod" placeholder="3월 – 6월" /></div>
+        <button type="button" class="admin-mini-btn" data-remove-term="${adminTermIndex}" ${terms.length <= 1 ? "disabled" : ""}>이 학기 삭제</button>
+      </div>
+      <p class="time-row-label">표 머리글</p>
+      <div class="time-row-fields">
+        <div class="field"><input name="col1" placeholder="요일" aria-label="1열 이름" /></div>
+        <div class="field"><input name="col2" placeholder="시간" aria-label="2열 이름" /></div>
+        <div class="field"><input name="col3" placeholder="수업" aria-label="3열 이름" /></div>
+      </div>
+      ${rows}
+      <div class="admin-inline-actions">
+        <button type="button" class="admin-mini-btn" data-add-row>줄 추가</button>
+      </div>
+    </div>
+  `;
   fillGradeFields(form, adminDraft, adminGradeIndex);
 };
 
@@ -534,17 +531,6 @@ const bindTimetableAdminEvents = (form) => {
   const wrap = form.querySelector("#timetableAdminFields");
   if (!wrap || wrap.dataset.bound === "1") return;
   wrap.dataset.bound = "1";
-  wrap.addEventListener("focusin", (event) => {
-    if (!adminDraft) return;
-    const input = event.target.closest("input[name^='gradeName']");
-    if (!input) return;
-    const nextIndex = Number(String(input.name).replace("gradeName", ""));
-    if (Number.isNaN(nextIndex) || nextIndex === adminGradeIndex) return;
-    adminDraft = readVisibleGradeIntoData(form, adminDraft, adminGradeIndex, true);
-    adminGradeIndex = nextIndex;
-    rebuildTimetableAdmin(form);
-    form.elements[`gradeName${nextIndex}`]?.focus();
-  });
   wrap.addEventListener("click", (event) => {
     if (!adminDraft) return;
     const pick = event.target.closest("[data-admin-grade]");
@@ -553,65 +539,85 @@ const bindTimetableAdminEvents = (form) => {
       if (nextIndex === adminGradeIndex) return;
       adminDraft = readVisibleGradeIntoData(form, adminDraft, adminGradeIndex, true);
       adminGradeIndex = nextIndex;
+      adminTermIndex = 0;
+      rebuildTimetableAdmin(form);
+      return;
+    }
+    const termPick = event.target.closest("[data-admin-term]");
+    if (termPick) {
+      const nextIndex = Number(termPick.dataset.adminTerm);
+      if (nextIndex === adminTermIndex) return;
+      adminDraft = readVisibleGradeIntoData(form, adminDraft, adminGradeIndex, true);
+      adminTermIndex = nextIndex;
       rebuildTimetableAdmin(form);
       return;
     }
     if (event.target.closest("[data-add-grade]")) {
       applyAdminChange(form, (draft) => {
-        const count = (draft.timetable || []).length;
+        const current = (draft.grades || [])[adminGradeIndex] || {};
         draft.grades = draft.grades || [];
         draft.grades.push({
           name: `학년 ${draft.grades.length + 1}`,
-          terms: Array.from({ length: count }, () => emptyTerm())
+          columns: deepCopy(current.columns || fallbackColumns),
+          terms: [emptyTerm()]
         });
         adminGradeIndex = draft.grades.length - 1;
+        adminTermIndex = 0;
       });
       return;
     }
-    const removeGrade = event.target.closest("[data-remove-grade]");
-    if (removeGrade) {
+    if (event.target.closest("[data-remove-grade]")) {
       applyAdminChange(form, (draft) => {
         if ((draft.grades || []).length <= 1) return;
-        const idx = Number(removeGrade.dataset.removeGrade);
-        draft.grades.splice(idx, 1);
+        draft.grades.splice(adminGradeIndex, 1);
         if (adminGradeIndex >= draft.grades.length) adminGradeIndex = draft.grades.length - 1;
-        else if (adminGradeIndex > idx) adminGradeIndex -= 1;
+        adminTermIndex = 0;
       });
       return;
     }
     if (event.target.closest("[data-add-term]")) {
       applyAdminChange(form, (draft) => {
-        draft.timetable = draft.timetable || [];
-        draft.timetable.push({ name: "새 학기", period: "", rows: [] });
-        (draft.grades || []).forEach((grade) => {
-          grade.terms = grade.terms || [];
-          grade.terms.push(emptyTerm());
-        });
+        const grade = (draft.grades || [])[adminGradeIndex];
+        if (!grade) return;
+        grade.terms = grade.terms || [];
+        grade.terms.push(emptyTerm());
+        adminTermIndex = grade.terms.length - 1;
       });
       return;
     }
     const removeTerm = event.target.closest("[data-remove-term]");
     if (removeTerm) {
       applyAdminChange(form, (draft) => {
-        if ((draft.timetable || []).length <= 1) return;
-        const idx = Number(removeTerm.dataset.removeTerm);
-        draft.timetable.splice(idx, 1);
-        (draft.grades || []).forEach((grade) => {
-          if (Array.isArray(grade.terms)) grade.terms.splice(idx, 1);
-        });
+        const grade = (draft.grades || [])[adminGradeIndex];
+        if (!grade || (grade.terms || []).length <= 1) return;
+        grade.terms.splice(Number(removeTerm.dataset.removeTerm), 1);
+        if (adminTermIndex >= grade.terms.length) adminTermIndex = grade.terms.length - 1;
       });
       return;
     }
-    const addRow = event.target.closest("[data-add-row]");
-    if (addRow) {
+    if (event.target.closest("[data-add-row]")) {
       applyAdminChange(form, (draft) => {
-        const idx = Number(addRow.dataset.addRow);
         const grade = (draft.grades || [])[adminGradeIndex];
         if (!grade) return;
         grade.terms = grade.terms || [];
-        if (!grade.terms[idx]) grade.terms[idx] = emptyTerm();
-        grade.terms[idx].rows = grade.terms[idx].rows || [];
-        grade.terms[idx].rows.push(["", "", ""]);
+        if (!grade.terms[adminTermIndex]) grade.terms[adminTermIndex] = emptyTerm();
+        grade.terms[adminTermIndex].rows = grade.terms[adminTermIndex].rows || [];
+        grade.terms[adminTermIndex].rows.push(["", "", ""]);
+      });
+      return;
+    }
+    const moveRow = event.target.closest("[data-row-up], [data-row-down]");
+    if (moveRow) {
+      applyAdminChange(form, (draft) => {
+        const raw = moveRow.dataset.rowUp != null ? moveRow.dataset.rowUp : moveRow.dataset.rowDown;
+        const [ti, ri] = String(raw || "").split(":").map(Number);
+        const delta = moveRow.dataset.rowUp != null ? -1 : 1;
+        const grade = (draft.grades || [])[adminGradeIndex];
+        const term = grade && grade.terms && grade.terms[ti];
+        if (!term || !Array.isArray(term.rows)) return;
+        const to = ri + delta;
+        if (to < 0 || to >= term.rows.length) return;
+        term.rows = swapItems(term.rows, ri, to);
       });
       return;
     }
@@ -657,7 +663,15 @@ const readTimetableAdmin = (form, pageData) => {
   };
 };
 
-const currentPage = () => document.body.dataset.page || "elementary";
+// 홈 관리자에서 보고 있는 초·중·고. 실제로 고친 페이지만 저장합니다.
+let adminCurriculumPage = "elementary";
+const touchedCurriculumPages = new Set();
+
+const currentPage = () => {
+  const page = document.body.dataset.page || "elementary";
+  if (page !== "home") return page;
+  return adminCurriculumPage || "elementary";
+};
 
 const currentData = () => loadCurriculum()[currentPage()] || DEFAULT_CURRICULUM.elementary;
 
@@ -703,46 +717,54 @@ const renderTimetable = (data) => {
   renderGradeTabs(data);
   const list = document.querySelector("#timetableList");
   if (!list) return;
-  if (selectedTermIndex >= (data.timetable || []).length) selectedTermIndex = 0;
-  list.innerHTML = data.timetable.map((item, index) => `
+  const terms = (currentGrade(data).terms) || [];
+  if (selectedTermIndex >= terms.length) selectedTermIndex = 0;
+  list.innerHTML = terms.map((item, index) => `
     <li>
-      <button type="button" data-time="${index}">${escapeHtml(item.name)}</button>
+      <button type="button" data-time="${index}" class="${!scheduleShowsAll && index === selectedTermIndex ? "is-active" : ""}">${escapeHtml(item.name)}</button>
     </li>
   `).join("");
+  const more = document.querySelector("#timeMore");
+  if (more) {
+    more.textContent = scheduleShowsAll ? "접기" : "더보기 >";
+    more.classList.toggle("is-active", scheduleShowsAll);
+  }
 };
 
 const renderNotices = (data) => {
   const list = document.querySelector("#noticeList");
+  const col = document.querySelector(".notice-col");
+  if (col) col.classList.toggle("is-expanded", noticesExpanded);
+  const more = document.querySelector("#noticeMore");
+  if (more) {
+    more.textContent = noticesExpanded ? "접기" : "더보기 >";
+    more.classList.toggle("is-active", noticesExpanded);
+  }
   if (!list) return;
   list.innerHTML = data.notices.map((item, index) => {
     if (!(item.title || "").trim()) return "";
+    const body = (item.body || "").trim();
+    const params = new URLSearchParams();
+    params.set("dept", currentPage());
+    params.set("n", String(index));
+    const href = `notice.html#${params.toString()}`;
     return `
     <li>
-      <button type="button" class="notice-item" data-notice="${index}">
+      <a class="notice-item" href="${href}">
         <span class="notice-main">
           ${item.important ? '<span class="badge-hot">중요</span>' : ""}
           <span class="notice-title">${escapeHtml(item.title)}</span>
         </span>
         <span class="notice-date">${escapeHtml(item.date)}</span>
-      </button>
+      </a>
+      ${body ? `<p class="notice-full">${escapeHtml(item.body)}</p>` : ""}
     </li>
   `;
   }).join("");
 };
 
-const openSchedule = (index, options = {}) => {
-  const data = currentData();
-  const item = data.timetable[index];
-  const panel = document.querySelector("#schedulePanel");
-  if (!item || !panel) return;
-  selectedTermIndex = index;
-  const grade = currentGrade(data);
-  const term = (grade.terms || [])[index] || {};
-  const cols = tableColumns(data);
-  const rows = term.rows || [];
-  const period = (term.period || "").trim();
-  const subtitle = period && period !== grade.name ? period : grade.name;
-  const body = rows.length
+const scheduleTableHtml = (rows, cols) => (
+  rows.length
     ? `<div class="schedule-table-wrap">
     <table class="schedule-table">
       <thead><tr><th>${escapeHtml(cols[0])}</th><th>${escapeHtml(cols[1])}</th><th>${escapeHtml(cols[2])}</th></tr></thead>
@@ -751,30 +773,71 @@ const openSchedule = (index, options = {}) => {
       )).join("")}</tbody>
     </table>
     </div>`
-    : `<p class="schedule-empty">이 학년 시간표는 아직 등록되지 않았습니다.</p>`;
-  panel.innerHTML = `
-    <h3>${escapeHtml(data.label)} ${escapeHtml(item.name)} 시간표</h3>
-    <p>${escapeHtml(subtitle)}</p>
-    ${body}
-  `;
-  panel.classList.add("is-open");
-  if (!options.silent) {
-    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    : `<p class="schedule-empty">이 학년 시간표는 아직 등록되지 않았습니다.</p>`
+);
+
+const termSubtitle = (term, gradeName) => {
+  const period = (term.period || "").trim();
+  return period && period !== gradeName ? period : gradeName;
+};
+
+const markScheduleList = () => {
+  document.querySelectorAll("#timetableList button[data-time]").forEach((btn) => {
+    const on = !scheduleShowsAll && Number(btn.dataset.time) === selectedTermIndex;
+    btn.classList.toggle("is-active", on);
+  });
+  const more = document.querySelector("#timeMore");
+  if (more) {
+    more.textContent = scheduleShowsAll ? "접기" : "더보기 >";
+    more.classList.toggle("is-active", scheduleShowsAll);
   }
 };
 
-const openNotice = (index) => {
-  const item = currentData().notices[index];
-  const modal = document.querySelector("#noticeModal");
-  if (!item || !modal) return;
-  modal.querySelector("[data-notice-kicker]").textContent = item.important ? "중요 공지" : "공지사항";
-  modal.querySelector("[data-notice-title]").textContent = item.title;
-  modal.querySelector("[data-notice-date]").textContent = item.date;
-  modal.querySelector("[data-notice-body]").textContent = item.body || "";
-  modal.classList.add("is-open");
+const openSchedule = (index, options = {}) => {
+  const data = currentData();
+  const panel = document.querySelector("#schedulePanel");
+  const grade = currentGrade(data);
+  const terms = grade.terms || [];
+  if (!panel || !terms.length) return;
+  scheduleShowsAll = false;
+  selectedTermIndex = Math.min(Math.max(Number(index) || 0, 0), terms.length - 1);
+  const term = terms[selectedTermIndex] || {};
+  const cols = tableColumns({ columns: grade.columns || data.columns });
+  panel.innerHTML = `
+    <section class="schedule-block">
+      <h3>${escapeHtml(data.label)} ${escapeHtml(term.name || "")} 시간표</h3>
+      <p>${escapeHtml(termSubtitle(term, grade.name))}</p>
+      ${scheduleTableHtml(term.rows || [], cols)}
+    </section>
+  `;
+  panel.classList.add("is-open");
+  markScheduleList();
+  if (!options.silent) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+};
+
+// 더보기는 첫 학기만 열지 않고, 선택한 학년의 학기 시간표를 모두 보여 줍니다.
+const openAllSchedules = (options = {}) => {
+  const data = currentData();
+  const panel = document.querySelector("#schedulePanel");
+  const grade = currentGrade(data);
+  const terms = grade.terms || [];
+  if (!panel) return;
+  scheduleShowsAll = true;
+  const cols = tableColumns({ columns: grade.columns || data.columns });
+  panel.innerHTML = terms.map((term) => `
+    <section class="schedule-block">
+      <h3>${escapeHtml(data.label)} ${escapeHtml(term.name || "")} 시간표</h3>
+      <p>${escapeHtml(termSubtitle(term, grade.name))}</p>
+      ${scheduleTableHtml(term.rows || [], cols)}
+    </section>
+  `).join("") || `<p class="schedule-empty">등록된 시간표가 없습니다.</p>`;
+  panel.classList.add("is-open");
+  markScheduleList();
+  if (!options.silent) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 };
 
 const initSlider = () => {
+  if (!document.querySelector("#slider")) return;
   const slides = () => [...document.querySelectorAll(".slide")];
   const dots = () => [...document.querySelectorAll("#sliderDots button")];
   let index = 0;
@@ -802,36 +865,28 @@ const initBoards = () => {
     const btn = event.target.closest("button[data-grade]");
     if (!btn) return;
     selectedGradeIndex = Number(btn.dataset.grade);
-    renderGradeTabs(currentData());
-    const panel = document.querySelector("#schedulePanel");
-    if (panel && panel.classList.contains("is-open")) {
-      openSchedule(selectedTermIndex, { silent: true });
-    }
+    const data = currentData();
+    const terms = (currentGrade(data).terms) || [];
+    if (selectedTermIndex >= terms.length) selectedTermIndex = 0;
+    renderTimetable(data);
+    if (scheduleShowsAll) openAllSchedules({ silent: true });
+    else openSchedule(selectedTermIndex, { silent: true });
   });
   document.querySelector("#timetableList")?.addEventListener("click", (event) => {
     const btn = event.target.closest("button[data-time]");
     if (!btn) return;
     openSchedule(Number(btn.dataset.time));
   });
-  document.querySelector("#noticeList")?.addEventListener("click", (event) => {
-    const btn = event.target.closest("button[data-notice]");
-    if (!btn) return;
-    openNotice(Number(btn.dataset.notice));
-  });
   document.querySelector("#noticeMore")?.addEventListener("click", (event) => {
     event.preventDefault();
-    const first = document.querySelector("#noticeList button[data-notice]");
-    if (first) first.click();
+    noticesExpanded = !noticesExpanded;
+    renderNotices(currentData());
+    if (noticesExpanded) document.querySelector("#noticeList")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
   document.querySelector("#timeMore")?.addEventListener("click", (event) => {
     event.preventDefault();
-    openSchedule(0);
-  });
-  document.querySelector("#noticeClose")?.addEventListener("click", () => {
-    document.querySelector("#noticeModal")?.classList.remove("is-open");
-  });
-  document.querySelector("#noticeModal")?.addEventListener("click", (event) => {
-    if (event.target.id === "noticeModal") event.currentTarget.classList.remove("is-open");
+    if (scheduleShowsAll) openSchedule(selectedTermIndex);
+    else openAllSchedules();
   });
 };
 
@@ -861,91 +916,101 @@ const swapItems = (list, from, to) => {
 };
 
 const readSlidesFromForm = (form) => {
-  const blocks = [...form.querySelectorAll("[data-slide-block]")];
-  return blocks.map((_, i) => ({
-    kicker: withFormText(form, `slide${i}Kicker`, ""),
-    title: withFormText(form, `slide${i}Title`, ""),
-    sub: withFormText(form, `slide${i}Sub`, ""),
-    note: withFormText(form, `slide${i}Note`, ""),
-    cta: withFormText(form, `slide${i}Cta`, ""),
-    ctaLink: withFormText(form, `slide${i}CtaLink`, "")
-  }));
+  const slides = deepCopy((adminDraft && adminDraft.slides) || []);
+  const block = form.querySelector("[data-slide-block]");
+  if (!block || !slides.length) return slides;
+  const i = Number(block.dataset.slideBlock);
+  slides[i] = {
+    kicker: withFormText(form, "slideKicker", ""),
+    title: withFormText(form, "slideTitle", ""),
+    sub: withFormText(form, "slideSub", ""),
+    note: withFormText(form, "slideNote", ""),
+    cta: withFormText(form, "slideCta", ""),
+    ctaLink: withFormText(form, "slideCtaLink", "")
+  };
+  return slides;
 };
 
 const readNoticesFromForm = (form) => {
-  const blocks = [...form.querySelectorAll("[data-notice-block]")];
-  return blocks.map((_, i) => ({
-    title: withFormText(form, `notice${i}Title`, ""),
-    date: withFormText(form, `notice${i}Date`, ""),
-    body: withFormText(form, `notice${i}Body`, ""),
-    important: !!form.elements[`notice${i}Important`]?.checked
-  }));
+  const notices = deepCopy((adminDraft && adminDraft.notices) || []);
+  const block = form.querySelector("[data-notice-block]");
+  if (!block) return notices;
+  const i = Number(block.dataset.noticeBlock);
+  notices[i] = {
+    title: withFormText(form, "noticeTitle", ""),
+    date: withFormText(form, "noticeDate", ""),
+    body: withFormText(form, "noticeBody", ""),
+    important: !!form.elements.noticeImportant?.checked
+  };
+  return notices;
 };
 
 const rebuildSlidesAdmin = (form) => {
   const wrap = form.querySelector("#slidesAdminFields");
   if (!wrap || !adminDraft) return;
   const slides = adminDraft.slides || [];
-  wrap.innerHTML = slides.map((slide, i) => `
-    <div class="time-block" data-slide-block="${i}">
-      <div class="time-block-head">
-        <h4>배너 ${i + 1}</h4>
-        <div class="admin-inline-actions">
-          <button type="button" class="admin-mini-btn" data-slide-up="${i}" ${i === 0 ? "disabled" : ""}>위로</button>
-          <button type="button" class="admin-mini-btn" data-slide-down="${i}" ${i === slides.length - 1 ? "disabled" : ""}>아래로</button>
-          <button type="button" class="admin-mini-btn" data-remove-slide="${i}" ${slides.length <= 1 ? "disabled" : ""}>이 배너 삭제</button>
-        </div>
+  if (!slides.length) {
+    wrap.innerHTML = `<button type="button" class="admin-mini-btn" data-add-slide>배너 추가</button>`;
+    return;
+  }
+  if (adminSlideIndex >= slides.length) adminSlideIndex = 0;
+  const slide = slides[adminSlideIndex] || emptySlide();
+  const pills = slides.map((item, i) => `
+    <button type="button" class="admin-pill ${i === adminSlideIndex ? "is-active" : ""}" data-slide-pick="${i}">${escapeHtml(item.title || `배너 ${i + 1}`)}</button>
+  `).join("");
+  wrap.innerHTML = `
+    <div class="admin-pills">${pills}<button type="button" class="admin-pill" data-add-slide>배너 추가</button></div>
+    <div class="time-block" data-slide-block="${adminSlideIndex}">
+      <div class="admin-inline-actions">
+        <button type="button" class="admin-mini-btn" data-slide-up="${adminSlideIndex}" ${adminSlideIndex === 0 ? "disabled" : ""}>앞으로</button>
+        <button type="button" class="admin-mini-btn" data-slide-down="${adminSlideIndex}" ${adminSlideIndex === slides.length - 1 ? "disabled" : ""}>뒤로</button>
+        <button type="button" class="admin-mini-btn" data-remove-slide="${adminSlideIndex}" ${slides.length <= 1 ? "disabled" : ""}>이 배너 삭제</button>
       </div>
-      <div class="field"><label>영문 라벨</label><input name="slide${i}Kicker" placeholder="Elementary" /></div>
-      <div class="field"><label>제목</label><input name="slide${i}Title" /></div>
-      <div class="field"><label>설명</label><textarea name="slide${i}Sub"></textarea></div>
-      <div class="field"><label>하단 안내 문구</label><input name="slide${i}Note" /></div>
-      <div class="field"><label>버튼 문구</label><input name="slide${i}Cta" placeholder="상담 예약하기" /></div>
-      <div class="field"><label>버튼 링크</label><input name="slide${i}CtaLink" placeholder="index.html#contact" /></div>
-    </div>
-  `).join("") + `
-    <div class="admin-inline-actions">
-      <button type="button" class="admin-mini-btn" data-add-slide>배너 추가</button>
+      <div class="field"><label>영문 라벨</label><input name="slideKicker" placeholder="Elementary" /></div>
+      <div class="field"><label>제목</label><input name="slideTitle" /></div>
+      <div class="field"><label>설명</label><textarea name="slideSub"></textarea></div>
+      <div class="field"><label>하단 안내 문구</label><input name="slideNote" /></div>
+      <div class="field"><label>버튼 문구</label><input name="slideCta" placeholder="상담 예약하기" /></div>
+      <div class="field"><label>버튼 링크</label><input name="slideCtaLink" placeholder="index.html#contact" /></div>
     </div>`;
-  slides.forEach((slide, i) => {
-    if (form.elements[`slide${i}Kicker`]) form.elements[`slide${i}Kicker`].value = slide.kicker || "";
-    if (form.elements[`slide${i}Title`]) form.elements[`slide${i}Title`].value = slide.title || "";
-    if (form.elements[`slide${i}Sub`]) form.elements[`slide${i}Sub`].value = slide.sub || "";
-    if (form.elements[`slide${i}Note`]) form.elements[`slide${i}Note`].value = slide.note || "";
-    if (form.elements[`slide${i}Cta`]) form.elements[`slide${i}Cta`].value = slide.cta || "";
-    if (form.elements[`slide${i}CtaLink`]) form.elements[`slide${i}CtaLink`].value = slide.ctaLink || "";
-  });
+  if (form.elements.slideKicker) form.elements.slideKicker.value = slide.kicker || "";
+  if (form.elements.slideTitle) form.elements.slideTitle.value = slide.title || "";
+  if (form.elements.slideSub) form.elements.slideSub.value = slide.sub || "";
+  if (form.elements.slideNote) form.elements.slideNote.value = slide.note || "";
+  if (form.elements.slideCta) form.elements.slideCta.value = slide.cta || "";
+  if (form.elements.slideCtaLink) form.elements.slideCtaLink.value = slide.ctaLink || "";
 };
 
 const rebuildNoticesAdmin = (form) => {
   const wrap = form.querySelector("#noticesAdminFields");
   if (!wrap || !adminDraft) return;
   const notices = adminDraft.notices || [];
-  wrap.innerHTML = notices.map((notice, i) => `
-    <div class="time-block" data-notice-block="${i}">
-      <div class="time-block-head">
-        <h4>공지 ${i + 1}</h4>
-        <div class="admin-inline-actions">
-          <button type="button" class="admin-mini-btn" data-notice-up="${i}" ${i === 0 ? "disabled" : ""}>위로</button>
-          <button type="button" class="admin-mini-btn" data-notice-down="${i}" ${i === notices.length - 1 ? "disabled" : ""}>아래로</button>
-          <button type="button" class="admin-mini-btn" data-remove-notice="${i}">이 공지 삭제</button>
-        </div>
+  if (!notices.length) {
+    wrap.innerHTML = `<button type="button" class="admin-mini-btn" data-add-notice>공지 추가</button>`;
+    return;
+  }
+  if (adminNoticeIndex >= notices.length) adminNoticeIndex = 0;
+  const notice = notices[adminNoticeIndex] || emptyNotice();
+  const pills = notices.map((item, i) => `
+    <button type="button" class="admin-pill ${i === adminNoticeIndex ? "is-active" : ""}" data-notice-pick="${i}">${escapeHtml(item.title || `공지 ${i + 1}`)}</button>
+  `).join("");
+  wrap.innerHTML = `
+    <div class="admin-pills">${pills}<button type="button" class="admin-pill" data-add-notice>공지 추가</button></div>
+    <div class="time-block" data-notice-block="${adminNoticeIndex}">
+      <div class="admin-inline-actions">
+        <button type="button" class="admin-mini-btn" data-notice-up="${adminNoticeIndex}" ${adminNoticeIndex === 0 ? "disabled" : ""}>앞으로</button>
+        <button type="button" class="admin-mini-btn" data-notice-down="${adminNoticeIndex}" ${adminNoticeIndex === notices.length - 1 ? "disabled" : ""}>뒤로</button>
+        <button type="button" class="admin-mini-btn" data-remove-notice="${adminNoticeIndex}">이 공지 삭제</button>
       </div>
-      <div class="field"><label>제목</label><input name="notice${i}Title" /></div>
-      <div class="field"><label>날짜</label><input name="notice${i}Date" /></div>
-      <div class="field"><label>본문</label><textarea name="notice${i}Body"></textarea></div>
-      <label class="field-check"><input type="checkbox" name="notice${i}Important" /> 중요 표시</label>
-    </div>
-  `).join("") + `
-    <div class="admin-inline-actions">
-      <button type="button" class="admin-mini-btn" data-add-notice>공지 추가</button>
+      <div class="field"><label>제목</label><input name="noticeTitle" /></div>
+      <div class="field"><label>날짜</label><input name="noticeDate" /></div>
+      <div class="field"><label>본문</label><textarea name="noticeBody"></textarea></div>
+      <label class="field-check"><input type="checkbox" name="noticeImportant" /> 중요 표시</label>
     </div>`;
-  notices.forEach((notice, i) => {
-    if (form.elements[`notice${i}Title`]) form.elements[`notice${i}Title`].value = notice.title || "";
-    if (form.elements[`notice${i}Date`]) form.elements[`notice${i}Date`].value = notice.date || "";
-    if (form.elements[`notice${i}Body`]) form.elements[`notice${i}Body`].value = notice.body || "";
-    if (form.elements[`notice${i}Important`]) form.elements[`notice${i}Important`].checked = !!notice.important;
-  });
+  if (form.elements.noticeTitle) form.elements.noticeTitle.value = notice.title || "";
+  if (form.elements.noticeDate) form.elements.noticeDate.value = notice.date || "";
+  if (form.elements.noticeBody) form.elements.noticeBody.value = notice.body || "";
+  if (form.elements.noticeImportant) form.elements.noticeImportant.checked = !!notice.important;
 };
 
 const bindSlideNoticeAdmin = (form) => {
@@ -954,9 +1019,19 @@ const bindSlideNoticeAdmin = (form) => {
     slidesWrap.dataset.bound = "1";
     slidesWrap.addEventListener("click", (event) => {
       if (!adminDraft) return;
+      const pick = event.target.closest("[data-slide-pick]");
+      if (pick) {
+        const next = Number(pick.dataset.slidePick);
+        if (next === adminSlideIndex) return;
+        adminDraft.slides = readSlidesFromForm(form);
+        adminSlideIndex = next;
+        rebuildSlidesAdmin(form);
+        return;
+      }
       if (event.target.closest("[data-add-slide]")) {
         adminDraft.slides = readSlidesFromForm(form);
         adminDraft.slides.push(emptySlide());
+        adminSlideIndex = adminDraft.slides.length - 1;
         rebuildSlidesAdmin(form);
         return;
       }
@@ -965,6 +1040,7 @@ const bindSlideNoticeAdmin = (form) => {
         adminDraft.slides = readSlidesFromForm(form);
         if (adminDraft.slides.length <= 1) return;
         adminDraft.slides.splice(Number(remove.dataset.removeSlide), 1);
+        if (adminSlideIndex >= adminDraft.slides.length) adminSlideIndex = adminDraft.slides.length - 1;
         rebuildSlidesAdmin(form);
         return;
       }
@@ -972,6 +1048,7 @@ const bindSlideNoticeAdmin = (form) => {
       if (up) {
         const i = Number(up.dataset.slideUp);
         adminDraft.slides = swapItems(readSlidesFromForm(form), i, i - 1);
+        adminSlideIndex = Math.max(0, i - 1);
         rebuildSlidesAdmin(form);
         return;
       }
@@ -979,6 +1056,7 @@ const bindSlideNoticeAdmin = (form) => {
       if (!down) return;
       const i = Number(down.dataset.slideDown);
       adminDraft.slides = swapItems(readSlidesFromForm(form), i, i + 1);
+      adminSlideIndex = Math.min(adminDraft.slides.length - 1, i + 1);
       rebuildSlidesAdmin(form);
     });
   }
@@ -987,9 +1065,19 @@ const bindSlideNoticeAdmin = (form) => {
     noticesWrap.dataset.bound = "1";
     noticesWrap.addEventListener("click", (event) => {
       if (!adminDraft) return;
+      const pick = event.target.closest("[data-notice-pick]");
+      if (pick) {
+        const next = Number(pick.dataset.noticePick);
+        if (next === adminNoticeIndex) return;
+        adminDraft.notices = readNoticesFromForm(form);
+        adminNoticeIndex = next;
+        rebuildNoticesAdmin(form);
+        return;
+      }
       if (event.target.closest("[data-add-notice]")) {
         adminDraft.notices = readNoticesFromForm(form);
         adminDraft.notices.push(emptyNotice());
+        adminNoticeIndex = adminDraft.notices.length - 1;
         rebuildNoticesAdmin(form);
         return;
       }
@@ -997,6 +1085,7 @@ const bindSlideNoticeAdmin = (form) => {
       if (remove) {
         adminDraft.notices = readNoticesFromForm(form);
         adminDraft.notices.splice(Number(remove.dataset.removeNotice), 1);
+        if (adminNoticeIndex >= adminDraft.notices.length) adminNoticeIndex = Math.max(0, adminDraft.notices.length - 1);
         rebuildNoticesAdmin(form);
         return;
       }
@@ -1004,6 +1093,7 @@ const bindSlideNoticeAdmin = (form) => {
       if (up) {
         const i = Number(up.dataset.noticeUp);
         adminDraft.notices = swapItems(readNoticesFromForm(form), i, i - 1);
+        adminNoticeIndex = Math.max(0, i - 1);
         rebuildNoticesAdmin(form);
         return;
       }
@@ -1011,9 +1101,54 @@ const bindSlideNoticeAdmin = (form) => {
       if (!down) return;
       const i = Number(down.dataset.noticeDown);
       adminDraft.notices = swapItems(readNoticesFromForm(form), i, i + 1);
+      adminNoticeIndex = Math.min(adminDraft.notices.length - 1, i + 1);
       rebuildNoticesAdmin(form);
     });
   }
+};
+const bindCurriculumTabs = () => {
+  const tabs = document.querySelector("#curriculumTabs");
+  if (!tabs || tabs.dataset.bound === "1") return;
+  tabs.dataset.bound = "1";
+  tabs.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-admin-tab]");
+    if (!btn) return;
+    const name = btn.dataset.adminTab;
+    tabs.querySelectorAll("[data-admin-tab]").forEach((el) => el.classList.toggle("is-active", el === btn));
+    document.querySelectorAll("[data-admin-pane]").forEach((pane) => {
+      pane.classList.toggle("is-active", pane.dataset.adminPane === name);
+    });
+  });
+};
+
+const bindDeptPicks = () => {
+  const picks = document.querySelector("#curriculumDeptPicks");
+  if (!picks || picks.dataset.bound === "1") return;
+  picks.dataset.bound = "1";
+  picks.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-curriculum-page]");
+    if (!btn) return;
+    const page = btn.dataset.curriculumPage;
+    if (!page || page === currentPage()) return;
+    if (touchedCurriculumPages.has(currentPage())) saveCurriculumAdmin();
+    adminCurriculumPage = page;
+    picks.querySelectorAll("[data-curriculum-page]").forEach((el) => {
+      el.classList.toggle("is-active", el === btn);
+    });
+    fillCurriculumAdmin();
+  });
+};
+
+const bindCurriculumDirty = () => {
+  const form = document.querySelector("#curriculumForm");
+  if (!form || form.dataset.dirtyBound === "1") return;
+  form.dataset.dirtyBound = "1";
+  const mark = () => touchedCurriculumPages.add(currentPage());
+  form.addEventListener("input", mark);
+  form.addEventListener("change", mark);
+  form.addEventListener("click", (event) => {
+    if (event.target.closest("button, input, textarea, select")) mark();
+  });
 };
 
 const fillCurriculumAdmin = () => {
@@ -1021,10 +1156,15 @@ const fillCurriculumAdmin = () => {
   if (!form) return;
   const data = currentData();
   adminDraft = normalizePage(deepCopy(data), currentPage());
+  adminGradeIndex = 0;
+  adminTermIndex = 0;
+  adminSlideIndex = 0;
+  adminNoticeIndex = 0;
   if (!Array.isArray(adminDraft.slides) || !adminDraft.slides.length) {
     adminDraft.slides = deepCopy((DEFAULT_CURRICULUM[currentPage()] || DEFAULT_CURRICULUM.elementary).slides);
   }
   if (!Array.isArray(adminDraft.notices)) adminDraft.notices = [];
+  bindCurriculumTabs();
   bindSlideNoticeAdmin(form);
   rebuildSlidesAdmin(form);
   rebuildNoticesAdmin(form);
@@ -1047,6 +1187,7 @@ const saveCurriculumAdmin = () => {
 const resetCurriculumAdmin = () => {
   const form = document.querySelector("#adminForm");
   if (!form) return;
+  touchedCurriculumPages.add(currentPage());
   const current = currentData();
   const defaults = DEFAULT_CURRICULUM[currentPage()] || DEFAULT_CURRICULUM.elementary;
   adminDraft = normalizePage(deepCopy(current), currentPage());
@@ -1058,7 +1199,61 @@ const resetCurriculumAdmin = () => {
   fillTimetableAdmin(form, adminDraft, { keepDraft: true });
 };
 
+const DEPT_FILES = {
+  elementary: "elementary.html",
+  middle: "middle.html",
+  high: "high.html"
+};
+
+// 공지 목록의 번호로 상세 페이지를 채웁니다. 원격 저장이 도착하면 다시 그립니다.
+const renderNoticePage = () => {
+  const root = document.querySelector(".notice-page");
+  if (!root) return;
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const searchParams = new URLSearchParams(window.location.search);
+  const dept = hashParams.get("dept") || searchParams.get("dept");
+  const index = Number(hashParams.get("n") || searchParams.get("n"));
+  const labels = { elementary: "초등부", middle: "중등부", high: "고등부" };
+  const file = DEPT_FILES[dept] || "index.html";
+  const back = document.querySelector("#noticeBack");
+  if (back) back.setAttribute("href", file);
+  const deptLabel = document.querySelector("[data-dept-label]");
+  if (deptLabel) deptLabel.textContent = labels[dept] || "공지";
+  document.querySelectorAll(".sub-nav a").forEach((link) => {
+    link.classList.toggle("is-active", link.getAttribute("href") === file);
+  });
+  const parent = document.querySelector(".has-sub > a");
+  if (parent && DEPT_FILES[dept]) {
+    parent.setAttribute("href", file);
+    parent.classList.add("is-active");
+  }
+  const page = DEPT_FILES[dept] ? loadCurriculum()[dept] : null;
+  const item = page && Array.isArray(page.notices) ? page.notices[index] : null;
+  const titleEl = document.querySelector("#noticeTitle");
+  const kicker = document.querySelector("#noticeKicker");
+  const dateEl = document.querySelector("#noticeDate");
+  const bodyEl = document.querySelector("#noticeBody");
+  if (!item || !(item.title || "").trim()) {
+    if (kicker) kicker.textContent = "공지사항";
+    if (titleEl) titleEl.textContent = "공지를 찾을 수 없습니다";
+    if (dateEl) dateEl.textContent = "";
+    if (bodyEl) bodyEl.textContent = "삭제되었거나 주소가 올바르지 않습니다.";
+    document.title = "공지사항 | 대치베스트 어학원";
+    return;
+  }
+  if (kicker) kicker.textContent = item.important ? "중요 공지" : "공지사항";
+  if (titleEl) titleEl.textContent = item.title;
+  if (dateEl) dateEl.textContent = item.date || "";
+  if (bodyEl) bodyEl.textContent = item.body || "";
+  document.title = `${item.title} | ${labels[dept] || "공지"} | 대치베스트 어학원`;
+};
+
 const renderCurriculumPage = () => {
+  if ((document.body.dataset.page || "") === "notice") {
+    renderNoticePage();
+    return;
+  }
+  if ((document.body.dataset.page || "") === "home") return;
   const grades = currentData().grades || [];
   if (selectedGradeIndex >= grades.length) selectedGradeIndex = 0;
   const data = currentData();
@@ -1067,13 +1262,10 @@ const renderCurriculumPage = () => {
   renderSlides(data);
   renderTimetable(data);
   renderNotices(data);
-  const panel = document.querySelector("#schedulePanel");
-  if (panel && panel.classList.contains("is-open")) {
-    openSchedule(selectedTermIndex, { silent: true });
-  }
+  if (scheduleShowsAll) openAllSchedules({ silent: true });
+  else if (((currentGrade(data).terms) || []).length) openSchedule(selectedTermIndex, { silent: true });
 
-  const fileMap = { elementary: "elementary.html", middle: "middle.html", high: "high.html" };
-  const file = fileMap[currentPage()];
+  const file = DEPT_FILES[currentPage()];
   document.querySelectorAll(".sub-nav a").forEach((link) => {
     link.classList.toggle("is-active", link.getAttribute("href") === file);
   });
@@ -1082,8 +1274,26 @@ const renderCurriculumPage = () => {
 };
 
 window.fillCurriculumAdmin = fillCurriculumAdmin;
-window.saveCurriculumAdmin = saveCurriculumAdmin;
+window.saveCurriculumAdmin = () => {
+  const pane = document.querySelector("#curriculumAdminPane");
+  if (pane && !touchedCurriculumPages.has(currentPage())) return true;
+  return saveCurriculumAdmin();
+};
 window.resetCurriculumAdmin = resetCurriculumAdmin;
+window.activateCurriculumAdmin = () => {
+  bindDeptPicks();
+  bindCurriculumDirty();
+  const picks = document.querySelector("#curriculumDeptPicks");
+  const active = picks && picks.querySelector("[data-curriculum-page].is-active");
+  adminCurriculumPage = (active && active.dataset.curriculumPage) || adminCurriculumPage || "elementary";
+  const timeFields = document.querySelector("#timetableAdminFields");
+  if (!timeFields || !timeFields.childElementCount) fillCurriculumAdmin();
+};
+window.getTouchedCurriculumPages = () => [...touchedCurriculumPages];
+window.resetTouchedCurriculum = () => {
+  touchedCurriculumPages.clear();
+  adminCurriculumPage = "elementary";
+};
 window.renderCurriculumPage = renderCurriculumPage;
 window.getCurriculumStore = loadCurriculum;
 window.setCurriculumStore = (data) => saveCurriculum(data);

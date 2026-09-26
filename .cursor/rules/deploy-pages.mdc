@@ -1,0 +1,14 @@
+---
+description: 사이트 수정을 마치면 GitHub Pages에 커밋하고 푸시한다
+alwaysApply: true
+---
+
+# 서버 반영
+
+이 저장소의 공개 사이트는 GitHub Pages다. 화면, 문구, 스타일, 스크립트를 수정한 뒤에는 확인이 끝나면 커밋하고 `main`에 푸시한다. 사용자가 다시 "서버에 반영"이라고 말하지 않아도 된다.
+
+- git config는 바꾸지 않는다.
+- 작성자는 환경 변수로 `howmaking-prog` / `howmaking-prog@users.noreply.github.com`을 쓴다.
+- 강제 푸시하지 않는다.
+- 토큰, 비밀번호, `.env`는 커밋하지 않는다.
+- 사용자가 그 작업은 커밋하지 말라고 한 경우에는 푸시하지 않는다.

@@ -4,6 +4,8 @@ const STORE_KEY = "daechibest_sync_v6";
 const TOKEN_KEY = "daechibest_github_token";
 const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_PASS_DEFAULT = "best1369";
+const ADMIN_SESSION_KEY = "daechibest_admin_session";
+const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
 const ASSET_VER = "6";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
@@ -24,20 +26,42 @@ const DEFAULT_CONTENT = {
   // 메인 오른쪽 패널 문구. 관리자 설정에서 바꿀 수 있습니다.
   heroPanelTitle: "Trust. Proven. Growth.",
   heroPanelSub: "대치동 영어 교육의 기본을 지키며, 학생의 다음 단계를 설계합니다.",
+  program1Label: "ELEMENTARY",
+  program1Name: "초등부",
+  program1Range: "초등 3–6",
+  program1Desc: "읽기의 기초와 어휘 습관을 먼저 세웁니다. 문법 용어보다 문장이 만들어지는 감각을 익혀, 중등 내신으로 자연스럽게 연결합니다.",
+  program2Label: "MIDDLE",
+  program2Name: "중등부",
+  program2Range: "중1–중3",
+  program2Desc: "내신 서술형과 수행평가를 놓치지 않으면서, 고등 독해에 필요한 구문과 어휘량을 함께 쌓습니다.",
+  program3Label: "HIGH SCHOOL",
+  program3Name: "고등부",
+  program3Range: "고1–고3",
+  program3Desc: "내신 고득점과 수능 독해 속도를 동시에 관리합니다. 약점 유형을 분리해 클리닉으로 보완합니다.",
+  programMore: "자세히 보기 →",
   heroStat1Title: "초·중·고",
   heroStat1Desc: "연계 커리큘럼",
   heroStat2Title: "콘텐츠",
   heroStat2Desc: "연구 시스템",
   heroStat3Title: "강사진",
   heroStat3Desc: "맞춤 밀착관리",
+  aboutKicker: "About",
   aboutTitle: "실력의 기본을 세우는 학원",
   aboutText: "대치베스트 어학원은 초·중·고 영어를 한 흐름으로 가르치는 대치동 영어 전문 학원입니다.\n\n문법, 독해, 어휘, 작문을 학년별 목표에 맞게 나누고, 수업 이후 복습과 클리닉까지 연결해 성적이 쌓이는 구조를 만듭니다.",
+  aboutSideTitle: "Why Daechi Best",
+  aboutSideText: "화려한 구호보다, 수업의 밀도와 관리의 정확함으로 신뢰를 쌓습니다.",
+  featuresKicker: "Features",
+  featuresTitle: "대치베스트만의 핵심 특징",
+  featuresIntro: "학생 한 명의 현재 실력과 다음 목표를 기준으로 수업과 숙제, 피드백을 설계합니다.",
   feature1Title: "소수 정예 맞춤 수업",
   feature1Desc: "학생 수보다 수업의 밀도를 우선합니다. 현재 레벨과 목표 학교에 맞춰 진도와 숙제를 조정합니다.",
   feature2Title: "체계적인 레벨 관리",
   feature2Desc: "입학 상담부터 월간 성취 점검까지, 실력 변화를 숫자와 피드백으로 확인할 수 있게 운영합니다.",
   feature3Title: "내신과 수능의 균형",
   feature3Desc: "학교 시험과 장기 입시를 따로 두지 않습니다. 학년별 우선순위를 분명히 해 시간을 낭비하지 않습니다.",
+  contactKicker: "Location",
+  contactTitle: "오시는 길",
+  contactIntro: "방문 상담은 사전 예약제로 진행합니다. 아래 연락처로 먼저 문의해 주세요.",
   address: "서울 강남구 선릉로 64길 11-2, 6층",
   phone: "02-556-3510",
   hours: "평일: 14:00 ~ 22:00\n토요일: 10:00 ~ 18:00\n일요일 휴무",
@@ -61,7 +85,8 @@ const isDataImage = (src) => String(src || "").startsWith("data:image/");
 
 // 설정에서 새로 고른 로고. null이면 기존 값을 유지합니다.
 let pendingLogoImage = null;
-let memory = { v: 6, updatedAt: 0, homepage: null, curriculum: null, homepageUpdatedAt: 0, curriculumUpdatedAt: {} };
+let adminUnlocked = false;
+let memory = { v: 6, updatedAt: 0, homepage: null, curriculum: null, homepageUpdatedAt: 0, curriculumUpdatedAt: {}, syncToken: "" };
 let editStamp = { homepageAt: 0, pageAt: 0, homepage: null };
 
 const mergeHomepage = (saved) => {
@@ -83,7 +108,8 @@ const readLocalPayload = () => {
         homepage: mergeHomepage(parsed.homepage),
         curriculum: parsed.curriculum || null,
         homepageUpdatedAt: Number(parsed.homepageUpdatedAt) || 0,
-        curriculumUpdatedAt: parsed.curriculumUpdatedAt || {}
+        curriculumUpdatedAt: parsed.curriculumUpdatedAt || {},
+        syncToken: typeof parsed.syncToken === "string" ? parsed.syncToken : ""
       };
     }
   } catch (error) {
@@ -96,13 +122,14 @@ const readLocalPayload = () => {
         v: 6,
         updatedAt: 0,
         homepage: mergeHomepage(JSON.parse(old)),
-        curriculum: null
+        curriculum: null,
+        syncToken: ""
       };
     }
   } catch (error) {
     console.error("이전 저장 내용을 읽는 중 문제가 발생했습니다.", error);
   }
-  return { v: 6, updatedAt: 0, homepage: { ...DEFAULT_CONTENT }, curriculum: null };
+  return { v: 6, updatedAt: 0, homepage: { ...DEFAULT_CONTENT }, curriculum: null, syncToken: "" };
 };
 
 const writeLocalPayload = (payload) => {
@@ -112,7 +139,8 @@ const writeLocalPayload = (payload) => {
     homepage: mergeHomepage(payload.homepage),
     curriculum: payload.curriculum || null,
     homepageUpdatedAt: Number(payload.homepageUpdatedAt) || 0,
-    curriculumUpdatedAt: payload.curriculumUpdatedAt || {}
+    curriculumUpdatedAt: payload.curriculumUpdatedAt || {},
+    syncToken: typeof payload.syncToken === "string" ? payload.syncToken : (memory.syncToken || "")
   };
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(memory));
@@ -146,6 +174,87 @@ const setToken = (token) => {
   }
 };
 
+const bytesToBase64 = (bytes) => {
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+};
+
+const base64ToBytes = (text) => {
+  const binary = atob(text);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+};
+
+const deriveSyncKey = async (password, salt) => {
+  const material = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+    material,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+};
+
+// 토큰은 관리자 비밀번호로 잠가 공유 파일에 둡니다. 다른 기기는 비밀번호만으로 엽니다.
+const sealSyncToken = async (token, password) => {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveSyncKey(password, salt);
+  const cipher = new Uint8Array(await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    new TextEncoder().encode(token)
+  ));
+  const packed = new Uint8Array(salt.length + iv.length + cipher.length);
+  packed.set(salt, 0);
+  packed.set(iv, salt.length);
+  packed.set(cipher, salt.length + iv.length);
+  return `v1.${bytesToBase64(packed)}`;
+};
+
+const openSyncToken = async (packed, password) => {
+  const raw = String(packed || "");
+  if (!raw.startsWith("v1.")) return "";
+  const bytes = base64ToBytes(raw.slice(3));
+  if (bytes.length < 29) return "";
+  const salt = bytes.slice(0, 16);
+  const iv = bytes.slice(16, 28);
+  const cipher = bytes.slice(28);
+  const key = await deriveSyncKey(password, salt);
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, cipher);
+  return new TextDecoder().decode(plain).trim();
+};
+
+const adminPassword = () => {
+  try {
+    return localStorage.getItem(ADMIN_PASS_KEY) || ADMIN_PASS_DEFAULT;
+  } catch (error) {
+    return ADMIN_PASS_DEFAULT;
+  }
+};
+
+const adoptSharedToken = async (password) => {
+  if (getToken() || !memory.syncToken) return;
+  try {
+    const token = await openSyncToken(memory.syncToken, password);
+    if (token) setToken(token);
+  } catch (error) {
+    console.error("공유 토큰을 열지 못했습니다.", error);
+  }
+};
+
 const rememberTokenFromForm = () => {
   const form = $("#adminForm");
   const field = form && form.elements.githubToken;
@@ -155,12 +264,22 @@ const rememberTokenFromForm = () => {
 const updateSyncStatus = () => {
   const status = $("#syncStatus");
   if (!status) return;
-  const connected = !!getToken();
+  const token = getToken();
+  const connected = !!token;
   status.textContent = connected
-    ? "연결됨 · 저장하면 PC와 휴대폰에 함께 반영됩니다."
-    : "미연결 · 토큰을 붙여넣어야 다른 기기에도 저장됩니다.";
+    ? "연결됨"
+    : "미연결";
   status.classList.toggle("is-on", connected);
   status.classList.toggle("is-off", !connected);
+  const mask = $("#githubTokenMask");
+  const maskField = $("#tokenMaskField");
+  if (mask) mask.value = connected ? "*".repeat(token.length) : "";
+  if (maskField) maskField.hidden = !connected;
+  const fold = $("#syncFold");
+  if (fold && fold.dataset.ready !== "1") {
+    fold.open = !connected;
+    fold.dataset.ready = "1";
+  }
 };
 
 const logoSrc = (data) => {
@@ -252,7 +371,7 @@ const fillAdminForm = (data) => {
   const file = $("#logoFile");
   if (file) file.value = "";
   const tokenField = form.elements.githubToken;
-  if (tokenField && !String(tokenField.value || "").trim()) tokenField.value = getToken();
+  if (tokenField) tokenField.value = "";
   updateSyncStatus();
 };
 
@@ -325,7 +444,8 @@ const parseRemote = (data) => {
     homepage: data.homepage ? mergeHomepage(data.homepage) : null,
     curriculum: data.curriculum || null,
     homepageUpdatedAt: Number(data.homepageUpdatedAt) || 0,
-    curriculumUpdatedAt: data.curriculumUpdatedAt || {}
+    curriculumUpdatedAt: data.curriculumUpdatedAt || {},
+    syncToken: typeof data.syncToken === "string" ? data.syncToken : ""
   };
 };
 
@@ -358,7 +478,8 @@ const applyRemote = (remote) => {
     homepage: remote.homepage || loadContent(),
     curriculum: remote.curriculum || memory.curriculum,
     homepageUpdatedAt: Number(remote.homepageUpdatedAt) || 0,
-    curriculumUpdatedAt: remote.curriculumUpdatedAt || {}
+    curriculumUpdatedAt: remote.curriculumUpdatedAt || {},
+    syncToken: remote.syncToken || memory.syncToken || ""
   };
   writeLocalPayload(next);
   applyContent(loadContent());
@@ -368,7 +489,13 @@ const applyRemote = (remote) => {
   }
   if ($("#adminOverlay") && $("#adminOverlay").classList.contains("open")) {
     fillAdminForm(loadContent());
-    if (typeof window.fillCurriculumAdmin === "function") window.fillCurriculumAdmin();
+    const curPane = $("#curriculumAdminPane");
+    if (typeof window.fillCurriculumAdmin === "function" && (!curPane || !curPane.hidden)) {
+      window.fillCurriculumAdmin();
+    }
+  }
+  if (adminUnlocked) {
+    adoptSharedToken(adminPassword()).then(() => updateSyncStatus());
   }
 };
 
@@ -444,19 +571,30 @@ const mergeSavePayload = (formHomepage, remote, options = {}) => {
       homepage,
       curriculum,
       homepageUpdatedAt: applyShared && hasDirtySharedFields(formHomepage) ? now : Number((remote && remote.homepageUpdatedAt) || memory.homepageUpdatedAt) || 0,
-      curriculumUpdatedAt: { ...remoteStamp, ...localStamp, [page]: now }
+      curriculumUpdatedAt: { ...remoteStamp, ...localStamp, [page]: now },
+      syncToken: (remote && remote.syncToken) || memory.syncToken || ""
     };
   }
   const remoteTime = Number(remote && remote.updatedAt) || 0;
   const localTime = Number(memory.updatedAt) || 0;
-  const curriculum = (remoteCur && remoteTime >= localTime)
-    ? remoteCur
-    : (localCur || remoteCur || memory.curriculum || null);
+  const touched = Array.isArray(options.touchedCurriculumPages) ? options.touchedCurriculumPages : [];
+  const curriculum = {
+    ...((remoteCur && remoteTime >= localTime) ? (remoteCur || {}) : (localCur || remoteCur || memory.curriculum || {}))
+  };
+  const curriculumUpdatedAt = { ...((remote && remote.curriculumUpdatedAt) || memory.curriculumUpdatedAt || {}) };
+  if (touched.length && localCur) {
+    touched.forEach((key) => {
+      if (!CURRICULUM_PAGES.includes(key) || !localCur[key]) return;
+      curriculum[key] = localCur[key];
+      curriculumUpdatedAt[key] = now;
+    });
+  }
   return {
     homepage: formHomepage,
     curriculum,
     homepageUpdatedAt: now,
-    curriculumUpdatedAt: (remote && remote.curriculumUpdatedAt) || memory.curriculumUpdatedAt || {}
+    curriculumUpdatedAt,
+    syncToken: (remote && remote.syncToken) || memory.syncToken || ""
   };
 };
 
@@ -500,9 +638,37 @@ const pushRemotePayload = async (payload) => {
   return true;
 };
 
+const setAdminMode = (mode) => {
+  const homePane = $("#homeAdminPane");
+  const curPane = $("#curriculumAdminPane");
+  const tabs = $("#adminModeTabs");
+  if (!homePane || !curPane || !tabs) return;
+  const showCur = mode === "curriculum";
+  homePane.hidden = showCur;
+  curPane.hidden = !showCur;
+  tabs.querySelectorAll("[data-admin-mode]").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.adminMode === (showCur ? "curriculum" : "home"));
+  });
+  const title = $("#adminTitle");
+  if (title) title.textContent = showCur ? "커리큘럼 수정" : "홈페이지 내용 수정";
+  const resetBtn = $("#resetBtn");
+  if (resetBtn) resetBtn.textContent = showCur ? "이 페이지만 되돌리기" : "홈만 되돌리기";
+  if (showCur && typeof window.activateCurriculumAdmin === "function") window.activateCurriculumAdmin();
+};
+
 const openAdmin = () => {
+  const fold = $("#syncFold");
+  if (fold) delete fold.dataset.ready;
   fillAdminForm(loadContent());
-  if (typeof window.fillCurriculumAdmin === "function") window.fillCurriculumAdmin();
+  const curPane = $("#curriculumAdminPane");
+  if (curPane) {
+    if (typeof window.resetTouchedCurriculum === "function") window.resetTouchedCurriculum();
+    const timeFields = $("#timetableAdminFields");
+    if (timeFields) timeFields.innerHTML = "";
+    setAdminMode("home");
+  } else if (typeof window.fillCurriculumAdmin === "function") {
+    window.fillCurriculumAdmin();
+  }
   editStamp = {
     homepageAt: Number(memory.homepageUpdatedAt || memory.updatedAt) || 0,
     pageAt: Number((memory.curriculumUpdatedAt || {})[currentSitePage()] || 0) || 0,
@@ -526,8 +692,34 @@ const ensureAdminPass = () => {
   }
 };
 
-const openAdminGate = () => {
+// 비밀번호를 맞춘 뒤 8시간, 또는 브라우저를 닫기 전까지 관리자 화면을 다시 묻지 않습니다.
+const hasAdminSession = () => {
+  try {
+    const until = Number(sessionStorage.getItem(ADMIN_SESSION_KEY)) || 0;
+    if (until > Date.now()) return true;
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  } catch (error) {
+    console.error("관리자 세션을 읽지 못했습니다.", error);
+  }
+  return false;
+};
+
+const keepAdminSession = () => {
+  try {
+    sessionStorage.setItem(ADMIN_SESSION_KEY, String(Date.now() + ADMIN_SESSION_MS));
+  } catch (error) {
+    console.error("관리자 세션을 저장하지 못했습니다.", error);
+  }
+};
+
+const openAdminGate = async () => {
   ensureAdminPass();
+  if (hasAdminSession()) {
+    adminUnlocked = true;
+    await adoptSharedToken(adminPassword());
+    openAdmin();
+    return;
+  }
   const lock = $("#adminLock");
   const input = $("#adminPassInput");
   const error = $("#adminLockError");
@@ -546,7 +738,7 @@ const closeAdminGate = () => {
   if (lock) lock.hidden = true;
 };
 
-const submitAdminGate = (event) => {
+const submitAdminGate = async (event) => {
   event.preventDefault();
   ensureAdminPass();
   const input = $("#adminPassInput");
@@ -554,13 +746,16 @@ const submitAdminGate = (event) => {
   let saved = ADMIN_PASS_DEFAULT;
   try {
     saved = localStorage.getItem(ADMIN_PASS_KEY) || ADMIN_PASS_DEFAULT;
-  } catch (error) {
-    console.error("관리자 비밀번호를 읽지 못했습니다.", error);
+  } catch (readError) {
+    console.error("관리자 비밀번호를 읽지 못했습니다.", readError);
   }
   if (!input || input.value.trim() !== saved) {
     if (error) error.hidden = false;
     return;
   }
+  adminUnlocked = true;
+  keepAdminSession();
+  await adoptSharedToken(input.value.trim());
   closeAdminGate();
   openAdmin();
 };
@@ -650,7 +845,11 @@ const initAdmin = () => {
         showToast("학원 이름과 슬로건은 반드시 입력해 주세요.");
         return;
       }
-      if (typeof window.saveCurriculumAdmin === "function") {
+      const curPane = $("#curriculumAdminPane");
+      const touched = typeof window.getTouchedCurriculumPages === "function"
+        ? window.getTouchedCurriculumPages()
+        : [];
+      if ((!curPane || touched.length) && typeof window.saveCurriculumAdmin === "function") {
         const ok = window.saveCurriculumAdmin();
         if (!ok) return;
       }
@@ -676,7 +875,10 @@ const initAdmin = () => {
         if (isCurriculumPage() && hasDirtySharedFields(data) && remoteHomeAt && editStamp.homepageAt && remoteHomeAt > editStamp.homepageAt) {
           applyShared = window.confirm("학원 이름·전화·주소 등이 다른 기기에서 더 최근에 저장되었습니다. 지금 값으로 덮어쓸까요?");
         }
-        const merged = mergeSavePayload(data, remote, { applyShared });
+        const merged = mergeSavePayload(data, remote, {
+          applyShared,
+          touchedCurriculumPages: curPane ? touched : []
+        });
         if (!writeLocalPayload({
           updatedAt: Date.now(),
           homepage: merged.homepage,
@@ -716,8 +918,16 @@ const initAdmin = () => {
           homepage: homepageForRemote,
           curriculum: merged.curriculum,
           homepageUpdatedAt: merged.homepageUpdatedAt,
-          curriculumUpdatedAt: merged.curriculumUpdatedAt
+          curriculumUpdatedAt: merged.curriculumUpdatedAt,
+          syncToken: merged.syncToken || memory.syncToken || ""
         };
+        if (getToken()) {
+          try {
+            payload.syncToken = await sealSyncToken(getToken(), adminPassword());
+          } catch (sealError) {
+            console.error("공유 토큰을 잠그지 못했습니다.", sealError);
+          }
+        }
         const synced = await pushRemotePayload(payload);
         applyContent(loadContent());
         closeAdmin();
@@ -737,7 +947,8 @@ const initAdmin = () => {
   }
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
-      if (isCurriculumPage()) {
+      const editingCurriculum = isCurriculumPage() || ($("#curriculumAdminPane") && !$("#curriculumAdminPane").hidden);
+      if (editingCurriculum) {
         const ok = window.confirm("이 페이지의 배너와 공지만 처음 예시 내용으로 되돌릴까요?\n시간표와 학원 이름·전화·주소는 그대로 둡니다.\n저장해야 반영됩니다.");
         if (!ok) return;
         if (typeof window.resetCurriculumAdmin === "function") window.resetCurriculumAdmin();
@@ -760,7 +971,16 @@ const initAdmin = () => {
       if (modal) modal.classList.remove("is-open");
     }
   });
-  if (window.location.hash === "#admin") openAdmin();
+  const modeTabs = $("#adminModeTabs");
+  if (modeTabs && modeTabs.dataset.bound !== "1") {
+    modeTabs.dataset.bound = "1";
+    modeTabs.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-admin-mode]");
+      if (!btn) return;
+      setAdminMode(btn.dataset.adminMode);
+    });
+  }
+  if (window.location.hash === "#admin") openAdminGate();
 };
 
 const init = () => {

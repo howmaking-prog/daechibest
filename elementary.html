@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site-v18.css?v=24" />
+  <link rel="stylesheet" href="css/site-v18.css?v=28" />
 </head>
 <body data-page="elementary">
   <header class="site-header">
@@ -116,59 +116,49 @@
     <aside class="admin-panel" role="dialog" aria-labelledby="adminTitle">
       <div class="admin-head">
         <div>
-          <h2 id="adminTitle">이 페이지 내용 수정</h2>
-          <p>저장하면 이 학년 내용이 PC와 휴대폰에 함께 반영됩니다.</p>
+          <h2 id="adminTitle">커리큘럼 수정</h2>
+          <p>배너, 시간표, 공지를 고칩니다. 학원 이름·로고·연락처는 홈 화면 관리자에서 수정합니다.</p>
         </div>
         <button class="icon-btn" id="adminClose" aria-label="닫기">×</button>
       </div>
       <form class="admin-body" id="adminForm">
-        <section class="admin-section">
-          <h3>PC와 휴대폰 함께 저장</h3>
-          <p class="sync-note">한 번만 GitHub 토큰을 연결하면, 저장이 PC와 휴대폰에 같이 반영됩니다. 지금 열린 학년 페이지만 덮어쓰고, 다른 학년과 홈 본문은 그대로 둡니다.</p>
-          <div class="field">
-            <label>GitHub 토큰 <span class="hint">howmaking-prog 계정에서 발급</span></label>
-            <input name="githubToken" type="password" autocomplete="off" placeholder="ghp_ 로 시작하는 값" />
-            <a class="token-link" href="https://github.com/settings/tokens/new?scopes=public_repo&description=daechibest" target="_blank" rel="noopener noreferrer">토큰 만들기 (Generate token 클릭)</a>
-            <div class="sync-status is-off" id="syncStatus">미연결 · 토큰을 붙여넣어야 다른 기기에도 저장됩니다.</div>
+        <details class="admin-fold" id="syncFold">
+          <summary>
+            <span>PC와 휴대폰 함께 저장</span>
+            <span class="sync-status is-off" id="syncStatus">미연결</span>
+          </summary>
+          <div class="admin-fold-body">
+            <p class="sync-note">토큰은 한 번만 넣으면 됩니다. 다른 기기는 관리자 비밀번호만으로 저장됩니다. 지금 열린 학년 페이지만 덮어쓰고, 다른 학년과 홈 본문은 그대로 둡니다.</p>
+            <div class="field" id="tokenMaskField" hidden>
+              <label>연결된 토큰</label>
+              <input id="githubTokenMask" type="text" readonly tabindex="-1" aria-label="연결된 토큰" />
+            </div>
+            <div class="field">
+              <label>GitHub 토큰 <span class="hint">바꿀 때만 입력하세요. 비워 두면 기존 연결을 유지합니다.</span></label>
+              <input name="githubToken" type="password" autocomplete="off" placeholder="ghp_ 로 시작하는 값" />
+              <a class="token-link" href="https://github.com/settings/tokens/new?scopes=public_repo&description=daechibest" target="_blank" rel="noopener noreferrer">토큰 만들기 (Generate token 클릭)</a>
+            </div>
           </div>
-        </section>
+        </details>
+        <div class="admin-tabs" id="curriculumTabs">
+          <button type="button" data-admin-tab="banner">배너</button>
+          <button type="button" class="is-active" data-admin-tab="time">시간표</button>
+          <button type="button" data-admin-tab="notice">공지</button>
+        </div>
         <div id="curriculumForm">
-          <section class="admin-section">
-            <h3>학원 기본 정보</h3>
-            <div class="field"><label>학원 이름</label><input name="academyName" maxlength="30" /></div>
-            <div class="field">
-              <label>로고 이미지 <span class="hint">헤더와 푸터에 표시됩니다. 원본 비율을 유지하고, 큰 그림은 별도 파일로 올라갑니다.</span></label>
-              <div class="logo-upload">
-                <img id="logoPreview" class="logo-preview" src="img/logo.png?v=6" alt="로고 미리보기" />
-                <div class="logo-upload-actions">
-                  <label class="file-btn">
-                    이미지 올리기
-                    <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp" />
-                  </label>
-                  <button type="button" class="text-btn" id="logoClear">기본 로고로</button>
-                </div>
-              </div>
-            </div>
-            <div class="field"><label>전화번호</label><input name="phone" /></div>
-            <div class="field"><label>주소</label><input name="address" /></div>
-            <div class="field">
-              <label>운영 시간 <span class="hint">푸터에 표시됩니다. 줄바꿈이 그대로 반영됩니다.</span></label>
-              <textarea name="hours"></textarea>
-            </div>
-          </section>
-          <section class="admin-section">
+          <section class="admin-section admin-pane" data-admin-pane="banner">
             <h3>배너</h3>
-            <p class="admin-hint">배너를 추가·삭제하거나 순서를 바꿀 수 있습니다. 영문 라벨과 버튼 문구·링크도 함께 저장됩니다.</p>
+            <p class="admin-hint">위에서 배너를 고르면 그 장만 수정합니다.</p>
             <div id="slidesAdminFields"></div>
           </section>
-          <section class="admin-section">
+          <section class="admin-section admin-pane is-active" data-admin-pane="time">
             <h3>시간표</h3>
-            <p class="admin-hint">학년 이름·개수, 학기, 줄 수를 추가하거나 지울 수 있습니다. 학기 이름과 칼럼 이름은 모든 학년에 같이 적용됩니다. 빈 칸은 빈 값으로 저장되고, 제목을 비운 공지는 목록에서 빠집니다.</p>
+            <p class="admin-hint">학년과 학기를 고른 뒤, 그 표만 수정합니다.</p>
             <div id="timetableAdminFields"></div>
           </section>
-          <section class="admin-section">
+          <section class="admin-section admin-pane" data-admin-pane="notice">
             <h3>공지사항</h3>
-            <p class="admin-hint">공지를 추가·삭제하거나 순서를 바꿀 수 있습니다. 제목을 비운 공지는 목록에 나오지 않습니다.</p>
+            <p class="admin-hint">위에서 공지를 고르면 그 글만 수정합니다. 제목을 비우면 목록에서 빠집니다.</p>
             <div id="noticesAdminFields"></div>
           </section>
         </div>
@@ -180,18 +170,8 @@
     </aside>
   </div>
 
-  <div class="notice-modal" id="noticeModal">
-    <div class="notice-card">
-      <p class="section-kicker" data-notice-kicker>공지사항</p>
-      <h3 data-notice-title></h3>
-      <p data-notice-date></p>
-      <p data-notice-body></p>
-      <button class="notice-close" id="noticeClose" type="button">닫기</button>
-    </div>
-  </div>
-
   <div class="toast" id="toast">저장되었습니다.</div>
-  <script src="js/app-v8.js?v=23"></script>
-  <script src="js/curriculum-v10.js"></script>
+  <script src="js/app-v8.js?v=29"></script>
+  <script src="js/curriculum-v10.js?v=6"></script>
 </body>
 </html>
