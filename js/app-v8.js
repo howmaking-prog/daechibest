@@ -6,7 +6,7 @@ const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_PASS_DEFAULT = "best1369";
 const ADMIN_SESSION_KEY = "daechibest_admin_session";
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
-const ASSET_VER = window.SITE_VER || "45";
+const ASSET_VER = window.SITE_VER || "46";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
 const REPO_RAW_URL = "https://raw.githubusercontent.com/howmaking-prog/daechibest/main/data/site.json";
@@ -60,16 +60,14 @@ const DEFAULT_CONTENT = {
   contactIntro: "방문 상담은 사전 예약제로 진행합니다. 아래 연락처로 먼저 문의해 주세요.",
   address: "서울 강남구 선릉로 64길 11-2, 6층",
   phone: "02-556-3510",
-  hours: "평일: 14:00 ~ 22:00\n토요일: 10:00 ~ 18:00\n일요일 휴무",
-  directions: "서울 강남구 선릉로 64길 11-2, 6층에 있습니다. 방문 전 전화로 상담 시간을 예약해 주세요."
+  hours: "평일: 14:00 ~ 22:00\n토요일: 10:00 ~ 18:00\n일요일 휴무"
 };
 
 // 예전에 저장해 둔 임시 연락처는 새 기본값으로 바꿉니다.
 const LEGACY_CONTACT = {
   address: "서울특별시 강남구 대치동 (대치역 인근)",
   phone: "02-555-1212",
-  hours: "평일 13:00 – 22:00\n토요일 10:00 – 18:00\n일요일·공휴일 휴무",
-  directions: "3호선 대치역 인근, 도보 이동이 편리한 위치에 있습니다. 방문 전 전화로 상담 시간을 예약해 주세요."
+  hours: "평일 13:00 – 22:00\n토요일 10:00 – 18:00\n일요일·공휴일 휴무"
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -85,7 +83,7 @@ let adminUnlocked = false;
 let memory = { v: 6, updatedAt: 0, homepage: null, curriculum: null, homepageUpdatedAt: 0, curriculumUpdatedAt: {}, syncToken: "" };
 let editStamp = { homepageAt: 0, pageAt: 0, homepage: null };
 
-const UNUSED_HOME_KEYS = ["logoText", "heroStat1Title", "heroStat1Desc", "heroStat2Title", "heroStat2Desc", "heroStat3Title", "heroStat3Desc"];
+const UNUSED_HOME_KEYS = ["logoText", "heroStat1Title", "heroStat1Desc", "heroStat2Title", "heroStat2Desc", "heroStat3Title", "heroStat3Desc", "directions"];
 
 const mergeHomepage = (saved) => {
   const merged = { ...DEFAULT_CONTENT, ...(saved || {}) };
