@@ -12,7 +12,7 @@
         window.location.replace(path + "/" + window.location.search + window.location.hash);
         return;
       }
-      window.SITE_VER = "36";
+      window.SITE_VER = "37";
       const params = new URLSearchParams(window.location.search);
       if (params.get("v") !== window.SITE_VER) {
         params.set("v", window.SITE_VER);
@@ -27,10 +27,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site-v18.css?v=36" />
+  <link rel="stylesheet" href="css/site-v18.css?v=37" />
 </head>
 <body data-page="notice">
-  <script src="js/chrome.js?v=36"></script>
+  <script src="js/chrome.js?v=37"></script>
   <script>document.write(DaechiChrome.header());</script>
 
   <main class="notice-page">
@@ -45,7 +45,7 @@
 
   <script>document.write(DaechiChrome.footer(false));</script>
 
-  <script src="js/app-v8.js?v=36"></script>
-  <script src="js/curriculum-v10.js?v=36"></script>
+  <script src="js/app-v8.js?v=37"></script>
+  <script src="js/curriculum-v10.js?v=37"></script>
 </body>
 </html>

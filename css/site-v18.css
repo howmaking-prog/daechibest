@@ -1239,27 +1239,31 @@
       margin-top: 8px;
       background: var(--bg);
       border-radius: 18px;
-      padding: 28px;
+      /* 위·아래를 좌·우보다 더 줄여 시간표가 카드에 붙게 합니다. */
+      padding: 12px 14px 10px;
     }
     .schedule-panel.is-open { display: block; }
     /* PC에서는 시간표·공지 아래 전체 너비로 시간표를 엽니다. */
     @media (min-width: 961px) {
       .schedule-panel {
         grid-column: 1 / -1;
-        margin-top: 8px;
+        /* 그리드 간격(72px)을 상쇄해 목록 바로 아래에 붙입니다. */
+        margin-top: -48px;
       }
     }
+    /* 공통 section 여백(PC 96px, 모바일 72px)이 시간표 카드 안에 들어가지 않게 합니다. */
+    .schedule-block { padding: 0; }
     .schedule-panel h3 {
       font-size: 18px;
       color: var(--navy-900);
-      margin-bottom: 6px;
+      margin: 0 0 2px;
     }
     .schedule-block + .schedule-block {
-      margin-top: 28px;
-      padding-top: 28px;
+      margin-top: 14px;
+      padding-top: 14px;
       border-top: 1px solid var(--line);
     }
-    .schedule-panel p { color: var(--muted); margin-bottom: 16px; }
+    .schedule-panel p { color: var(--muted); margin: 0 0 8px; }
     .schedule-table {
       width: 100%;
       border-collapse: collapse;
@@ -1407,7 +1411,11 @@
       .dept-board { padding: 24px 18px 56px; }
       /* 모바일: 시간표 클릭 시 공지 위(시간표 목록 바로 아래)에 패널이 열립니다. */
       .timetable-col { order: 1; }
-      .schedule-panel { order: 2; margin-top: 4px; }
+      /* 목록·공지와의 간격(36px)을 줄이고, 카드도 좌우로 조금 넓힙니다. */
+      .schedule-panel {
+        order: 2;
+        margin: -18px -8px -14px;
+      }
       .notice-col { order: 3; }
       .board-head {
         flex-wrap: nowrap;
@@ -1441,7 +1449,7 @@
         text-align: right;
         padding-top: 0;
       }
-      .schedule-panel { padding: 18px; }
+      .schedule-panel { padding: 10px 10px 8px; }
       .schedule-table th,
       .schedule-table td {
         padding: 10px 8px;
