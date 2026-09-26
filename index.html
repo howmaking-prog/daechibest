@@ -65,7 +65,7 @@
   <main>
     <section class="hero" id="home">
       <div class="hero-inner">
-        <div>
+        <div class="hero-copy">
           <div class="eyebrow">Daechi Best Academy</div>
           <h1 data-bind="heroSlogan">대치동의 기준이 되는 영어</h1>
           <p class="hero-sub" data-bind="heroSub">초등부터 고등까지, 실력과 자신감을 함께 키우는 대치베스트 어학원입니다. 소수 정예 수업과 체계적인 레벨 관리로 한 명 한 명의 성장을 책임집니다.</p>
@@ -77,38 +77,32 @@
         <aside class="hero-panel">
           <div class="hero-panel-title" data-bind="heroPanelTitle">Trust. Proven. Growth.</div>
           <p data-bind="heroPanelSub">대치동 영어 교육의 기본을 지키며, 학생의 다음 단계를 설계합니다.</p>
-          <div class="hero-stats">
-            <div class="stat">
-              <strong data-bind="heroStat1Title">초·중·고</strong>
-              <span data-bind="heroStat1Desc">연계 커리큘럼</span>
-            </div>
-            <div class="stat">
-              <strong data-bind="heroStat2Title">콘텐츠</strong>
-              <span data-bind="heroStat2Desc">연구 시스템</span>
-            </div>
-            <div class="stat">
-              <strong data-bind="heroStat3Title">강사진</strong>
-              <span data-bind="heroStat3Desc">맞춤 밀착관리</span>
-            </div>
+          <div class="program-tabs">
+            <a class="program-tab" href="elementary.html">
+              <small>ELEMENTARY</small>
+              <strong>초등부</strong>
+              <em>초등 3–6</em>
+              <p>읽기의 기초와 어휘 습관을 먼저 세웁니다. 문법 용어보다 문장이 만들어지는 감각을 익혀, 중등 내신으로 자연스럽게 연결합니다.</p>
+              <span class="course-more">자세히 보기 →</span>
+            </a>
+            <a class="program-tab" href="middle.html">
+              <small>MIDDLE</small>
+              <strong>중등부</strong>
+              <em>중1–중3</em>
+              <p>내신 서술형과 수행평가를 놓치지 않으면서, 고등 독해에 필요한 구문과 어휘량을 함께 쌓습니다.</p>
+              <span class="course-more">자세히 보기 →</span>
+            </a>
+            <a class="program-tab" href="high.html">
+              <small>HIGH SCHOOL</small>
+              <strong>고등부</strong>
+              <em>고1–고3</em>
+              <p>내신 고득점과 수능 독해 속도를 동시에 관리합니다. 약점 유형을 분리해 클리닉으로 보완합니다.</p>
+              <span class="course-more">자세히 보기 →</span>
+            </a>
           </div>
         </aside>
       </div>
     </section>
-
-    <div class="program-tabs">
-      <a class="program-tab" href="elementary.html">
-        <small>ELEMENTARY</small>
-        <strong>초등부</strong>
-      </a>
-      <a class="program-tab" href="middle.html">
-        <small>MIDDLE</small>
-        <strong>중등부</strong>
-      </a>
-      <a class="program-tab" href="high.html">
-        <small>HIGH SCHOOL</small>
-        <strong>고등부</strong>
-      </a>
-    </div>
 
     <section class="about" id="about">
       <div class="section-inner about-grid">
@@ -155,36 +149,6 @@
             <h3 data-bind="feature3Title">내신과 수능의 균형</h3>
             <p data-bind="feature3Desc">학교 시험과 장기 입시를 따로 두지 않습니다. 학년별 우선순위를 분명히 해 시간을 낭비하지 않습니다.</p>
           </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="curriculum" id="curriculum">
-      <div class="section-inner">
-        <div class="section-head">
-          <div class="section-kicker">Curriculum</div>
-          <h2>초등부터 고등까지 이어지는 커리큘럼</h2>
-          <p>학년의 전환기에도 수업 방식이 끊기지 않도록, 단계별 목표를 분명히 나눕니다.</p>
-        </div>
-        <div class="curriculum-grid">
-          <a class="course-card" href="elementary.html">
-            <em>초등 3–6</em>
-            <h3>초등부</h3>
-            <p>읽기의 기초와 어휘 습관을 먼저 세웁니다. 문법 용어보다 문장이 만들어지는 감각을 익혀, 중등 내신으로 자연스럽게 연결합니다.</p>
-            <span class="course-more">자세히 보기 →</span>
-          </a>
-          <a class="course-card" href="middle.html">
-            <em>중1–중3</em>
-            <h3>중등부</h3>
-            <p>내신 서술형과 수행평가를 놓치지 않으면서, 고등 독해에 필요한 구문과 어휘량을 함께 쌓습니다.</p>
-            <span class="course-more">자세히 보기 →</span>
-          </a>
-          <a class="course-card" href="high.html">
-            <em>고1–고3</em>
-            <h3>고등부</h3>
-            <p>내신 고득점과 수능 독해 속도를 동시에 관리합니다. 약점 유형을 분리해 클리닉으로 보완합니다.</p>
-            <span class="course-more">자세히 보기 →</span>
-          </a>
         </div>
       </div>
     </section>
@@ -322,7 +286,7 @@
         </section>
 
         <section class="admin-section">
-          <h3>3. 메인 오른쪽 패널</h3>
+          <h3>3. Trust 박스</h3>
           <div class="field">
             <label>패널 제목 <span class="hint">Trust. Proven. Growth. 같은 짧은 문구</span></label>
             <input name="heroPanelTitle" maxlength="48" />
@@ -330,30 +294,6 @@
           <div class="field">
             <label>패널 설명</label>
             <textarea name="heroPanelSub"></textarea>
-          </div>
-          <div class="field">
-            <label>칸 1 제목</label>
-            <input name="heroStat1Title" maxlength="20" />
-          </div>
-          <div class="field">
-            <label>칸 1 설명</label>
-            <input name="heroStat1Desc" maxlength="30" />
-          </div>
-          <div class="field">
-            <label>칸 2 제목</label>
-            <input name="heroStat2Title" maxlength="20" />
-          </div>
-          <div class="field">
-            <label>칸 2 설명</label>
-            <input name="heroStat2Desc" maxlength="30" />
-          </div>
-          <div class="field">
-            <label>칸 3 제목</label>
-            <input name="heroStat3Title" maxlength="20" />
-          </div>
-          <div class="field">
-            <label>칸 3 설명</label>
-            <input name="heroStat3Desc" maxlength="30" />
           </div>
         </section>
 
