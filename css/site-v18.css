@@ -1087,10 +1087,11 @@
       flex: 1;
       min-height: 40px;
       padding: 0 12px;
-      border: 1px solid var(--navy-900);
+      /* 배경과 섞이지 않게 테두리만 살짝 밝힙니다. */
+      border: 1px solid rgba(255, 255, 255, 0.28);
       border-radius: 999px;
-      background: var(--navy-900);
-      color: #fff;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.92);
       font-size: 14px;
       font-weight: 800;
       cursor: pointer;

@@ -12,7 +12,7 @@
         window.location.replace(path + "/" + window.location.search + window.location.hash);
         return;
       }
-      window.SITE_VER = "39";
+      window.SITE_VER = "40";
       const params = new URLSearchParams(window.location.search);
       if (params.get("v") !== window.SITE_VER) {
         params.set("v", window.SITE_VER);
@@ -27,10 +27,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site-v18.css?v=39" />
+  <link rel="stylesheet" href="css/site-v18.css?v=40" />
 </head>
 <body data-page="high">
-  <script src="js/chrome.js?v=39"></script>
+  <script src="js/chrome.js?v=40"></script>
   <script>document.write(DaechiChrome.header());</script>
 
   <main>
@@ -69,7 +69,7 @@
   <script>document.write(DaechiChrome.deptAdmin());</script>
 
   <div class="toast" id="toast">저장되었습니다.</div>
-  <script src="js/app-v8.js?v=39"></script>
-  <script src="js/curriculum-v10.js?v=39"></script>
+  <script src="js/app-v8.js?v=40"></script>
+  <script src="js/curriculum-v10.js?v=40"></script>
 </body>
 </html>
