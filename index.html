@@ -12,7 +12,7 @@
         window.location.replace(path + "/" + window.location.search + window.location.hash);
         return;
       }
-      window.SITE_VER = "37";
+      window.SITE_VER = "38";
       const params = new URLSearchParams(window.location.search);
       if (params.get("v") !== window.SITE_VER) {
         params.set("v", window.SITE_VER);
@@ -28,10 +28,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site-v18.css?v=37" />
+  <link rel="stylesheet" href="css/site-v18.css?v=38" />
 </head>
 <body data-page="home">
-  <script src="js/chrome.js?v=37"></script>
+  <script src="js/chrome.js?v=38"></script>
   <script>document.write(DaechiChrome.header());</script>
 
   <main>
@@ -227,7 +227,7 @@
           <div class="field">
             <label>로고 이미지 <span class="hint">헤더에 표시됩니다. 원본 비율을 유지하고, 큰 그림은 별도 파일로 올라갑니다.</span></label>
             <div class="logo-upload">
-              <img id="logoPreview" class="logo-preview" src="img/logo.png?v=37" alt="로고 미리보기" />
+              <img id="logoPreview" class="logo-preview" src="img/logo.png?v=38" alt="로고 미리보기" />
               <div class="logo-upload-actions">
                 <label class="file-btn">
                   이미지 올리기
@@ -449,6 +449,6 @@
 
   <div class="toast" id="toast">저장되었습니다. 메인 화면에 반영했어요.</div>
 
-  <script src="js/app-v8.js?v=37"></script>
+  <script src="js/app-v8.js?v=38"></script>
 </body>
 </html>
