@@ -302,7 +302,8 @@
     .section-head p { color: var(--muted); font-size: 16px; }
 
     /* 학원 소개 */
-    .about { background: var(--bg); }
+    /* 특징 섹션을 뺀 뒤에도 소개와 오시는 길이 붙어 보이지 않게 합니다. */
+    .about { background: var(--bg); padding-bottom: 108px; }
     .about-grid {
       display: grid;
       grid-template-columns: 1.05fr 0.95fr;
@@ -343,42 +344,6 @@
     }
     .about-visual h3 { font-size: 26px; margin-bottom: 8px; }
     .about-visual p { color: rgba(255,255,255,0.75); }
-
-    /* 특징 */
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-    .feature-card {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 32px 28px;
-      box-shadow: 0 10px 30px rgba(11, 28, 51, 0.04);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .feature-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow);
-    }
-    .feature-icon {
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      background: #f3ead6;
-      color: var(--navy-800);
-      display: grid;
-      place-items: center;
-      margin-bottom: 20px;
-    }
-    .feature-card h3 {
-      font-size: 20px;
-      color: var(--navy-900);
-      margin-bottom: 10px;
-      letter-spacing: -0.03em;
-    }
-    .feature-card p { color: var(--muted); font-size: 15px; }
 
     /* 오시는 길 */
     .contact-grid {
@@ -755,7 +720,7 @@
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     @media (max-width: 960px) {
-      .hero-inner, .about-grid, .feature-grid, .contact-grid, .footer-inner {
+      .hero-inner, .about-grid, .contact-grid, .footer-inner {
         grid-template-columns: 1fr;
       }
       .hero {
