@@ -459,6 +459,15 @@
       white-space: pre-line;
     }
     .footer-contact a { color: inherit; }
+    @media (min-width: 961px) {
+      .footer-inner { max-width: var(--max); }
+      .footer-contact {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 40px;
+        align-items: start;
+      }
+    }
     .copyright {
       width: min(100%, 420px);
       margin: 0;
