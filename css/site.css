@@ -26,7 +26,7 @@
     body {
       font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
       color: var(--ink);
-      background: var(--white);
+      background: #f7f9fc;
       line-height: 1.7;
     }
     img { max-width: 100%; display: block; }
@@ -37,15 +37,25 @@
       clip: rect(0, 0, 0, 0);
     }
 
-    /* 상단 고정 네비게이션 */
+    /* 상단 고정 네비게이션. 네이비·골드 선을 얇게 남겨 흰 화면과 구분합니다. */
     .site-header {
       position: sticky;
       top: 0;
       z-index: 50;
       height: var(--header-h);
-      background: rgba(255, 255, 255, 0.94);
+      background: rgba(247, 250, 253, 0.94);
       backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(18, 40, 68, 0.06);
+      border-bottom: 1px solid rgba(11, 28, 51, 0.08);
+      box-shadow: 0 10px 28px rgba(11, 28, 51, 0.05);
+    }
+    .site-header::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--navy-900) 0%, var(--blue-600) 55%, var(--gold) 100%);
     }
     .header-inner {
       max-width: var(--max);
@@ -104,7 +114,7 @@
       color: var(--navy-700);
       border-radius: 10px;
     }
-    .nav-list a:hover { background: var(--bg); color: var(--navy-900); }
+    .nav-list a:hover { background: rgba(37, 99, 235, 0.08); color: var(--navy-900); }
     .header-cta {
       display: inline-flex;
       align-items: center;
@@ -119,7 +129,7 @@
       white-space: nowrap;
       transition: transform 0.2s ease, background 0.2s ease;
     }
-    .header-cta:hover { background: var(--navy-800); transform: translateY(-1px); }
+    .header-cta:hover { background: var(--blue-700); transform: translateY(-1px); }
     .menu-toggle {
       display: none;
       width: 42px;
@@ -137,25 +147,38 @@
       background: var(--navy-900);
     }
 
-    /* 홈 상단: 흰 배경, 왼쪽 제목과 가운데 정렬 학년 카드 */
+    /* 홈 상단: 흰 면 대신 옅은 네이비·블루 띠를 깔아 구간을 만듭니다. */
     .intro {
-      background: #fff;
+      background:
+        radial-gradient(880px 400px at 90% 0%, rgba(37, 99, 235, 0.16), transparent 48%),
+        linear-gradient(180deg, #e4ebf4 0%, #eef3f8 100%);
       color: var(--navy-900);
       padding: 0;
+      border-bottom: 1px solid rgba(11, 28, 51, 0.06);
     }
     .intro-inner {
       max-width: var(--max);
       margin: 0 auto;
-      padding: 80px 24px 72px;
+      padding: 88px 24px 80px;
     }
     .intro h1 {
       font-size: clamp(32px, 4.2vw, 46px);
       line-height: 1.35;
       letter-spacing: -0.04em;
       font-weight: 800;
+      color: var(--navy-900);
       max-width: 9.2em;
       word-break: keep-all;
       margin-bottom: 20px;
+    }
+    .intro h1::before {
+      content: "";
+      display: block;
+      width: 36px;
+      height: 3px;
+      margin-bottom: 18px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--gold), var(--blue-500));
     }
     .intro-lead {
       max-width: 560px;
@@ -163,7 +186,7 @@
       font-size: 16px;
       line-height: 1.85;
       word-break: keep-all;
-      margin-bottom: 48px;
+      margin-bottom: 52px;
     }
     .intro-cards {
       display: grid;
@@ -176,30 +199,35 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 168px;
+      min-height: 176px;
       padding: 36px 20px;
-      border: 1px solid var(--line);
+      border: 1px solid rgba(18, 40, 68, 0.1);
       border-radius: 22px;
       background: #fff;
       text-align: center;
       color: inherit;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      /* 위쪽 네이비 선으로 민짜 흰 박스에서 벗어나게 합니다. */
+      box-shadow: inset 0 3px 0 var(--navy-900), 0 10px 28px rgba(11, 28, 51, 0.05);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
     .intro-card:hover {
-      border-color: rgba(18, 40, 68, 0.16);
-      box-shadow: 0 10px 28px rgba(11, 28, 51, 0.06);
+      border-color: var(--blue-500);
+      box-shadow: inset 0 3px 0 var(--blue-500), 0 16px 36px rgba(37, 99, 235, 0.14);
+      transform: translateY(-3px);
     }
     .intro-card strong {
       font-size: 22px;
       font-weight: 800;
+      color: var(--navy-900);
       letter-spacing: -0.03em;
       word-break: keep-all;
     }
     .intro-card span {
       display: block;
-      margin-top: 8px;
-      font-size: 15px;
-      color: var(--muted);
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--navy-600);
       word-break: keep-all;
     }
     .intro-card span:empty { display: none; }
@@ -229,12 +257,22 @@
     .section-inner { max-width: var(--max); margin: 0 auto; }
     .section-head { text-align: center; max-width: 640px; margin: 0 auto 56px; }
     .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       color: var(--blue-600);
       font-size: 13px;
       font-weight: 800;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       margin-bottom: 10px;
+    }
+    .section-kicker::before {
+      content: "";
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--gold);
     }
     .section-head h2 {
       font-size: clamp(28px, 3.4vw, 40px);
@@ -245,9 +283,13 @@
     }
     .section-head p { color: var(--muted); font-size: 16px; }
 
-    /* 학원 소개 */
-    /* 특징 섹션을 뺀 뒤에도 소개와 오시는 길이 붙어 보이지 않게 합니다. */
-    .about { background: var(--bg); padding-bottom: 108px; }
+    /* 학원 소개. 인트로보다 한 톤 진한 블루 띠로 구간을 나눕니다. */
+    .about {
+      background:
+        radial-gradient(720px 320px at 100% 0%, rgba(37, 99, 235, 0.08), transparent 52%),
+        #eef3f9;
+      padding-bottom: 108px;
+    }
     .about-grid {
       display: grid;
       grid-template-columns: 1.05fr 0.95fr;
@@ -289,7 +331,8 @@
     .about-visual h3 { font-size: 26px; margin-bottom: 8px; }
     .about-visual p { color: rgba(255,255,255,0.75); }
 
-    /* 오시는 길 */
+    /* 오시는 길. 소개 띠와 교차되도록 흰 배경을 씁니다. */
+    #contact { background: #fff; }
     .contact-grid {
       display: grid;
       grid-template-columns: 0.9fr 1.1fr;
@@ -300,7 +343,8 @@
       gap: 14px;
     }
     .info-item {
-      background: var(--bg);
+      background: #f4f7fb;
+      border-left: 3px solid var(--blue-600);
       border-radius: 16px;
       padding: 20px 22px;
     }
@@ -320,11 +364,12 @@
     }
     .map-wrap iframe { width: 100%; height: 100%; min-height: 360px; border: 0; }
 
-    /* 푸터 */
+    /* 푸터. 골드 선으로 본문과 네이비 바닥을 잇습니다. */
     .site-footer {
       background: var(--navy-900);
       color: rgba(255,255,255,0.78);
       padding: 48px 24px 28px;
+      border-top: 3px solid var(--gold);
     }
     .footer-inner {
       max-width: var(--max);
@@ -342,6 +387,7 @@
     .footer-brand strong { color: #fff; font-size: 18px; }
     .site-footer h4 { color: #fff; margin-bottom: 12px; }
     .site-footer ul { list-style: none; display: grid; gap: 8px; }
+    .site-footer a:hover { color: var(--gold-soft); }
     .site-footer [data-bind="hours"] { white-space: pre-line; }
     .copyright {
       max-width: var(--max);
@@ -735,13 +781,13 @@
     .has-sub:hover .sub-nav,
     .has-sub:focus-within .sub-nav { opacity: 1; visibility: visible; transform: none; }
     .sub-nav a { font-size: 14px; }
-    .nav-list a.is-active { color: var(--navy-900); background: var(--bg); }
+    .nav-list a.is-active { color: var(--navy-900); background: rgba(37, 99, 235, 0.08); }
 
     .brand-dept {
       margin-left: 4px;
       padding-left: 12px;
-      border-left: 1px solid var(--line);
-      color: var(--muted);
+      border-left: 2px solid var(--blue-500);
+      color: var(--navy-700);
       font-size: 14px;
       font-weight: 700;
       white-space: nowrap;
@@ -786,6 +832,23 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+    }
+    /* 학년 배너 영문 라벨. 예전 히어로에서 쓰던 골드 선을 그대로 둡니다. */
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--gold-soft);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 2px;
+      background: var(--gold);
     }
     .slide-copy .eyebrow { margin-bottom: 14px; }
     .slide-copy h1 {
@@ -850,7 +913,9 @@
     /* 시간표 / 공지: 기본은 한 줄, 넓은 화면에서만 2단 */
     .dept-board {
       padding: 56px 24px 96px;
-      background: #fff;
+      background:
+        radial-gradient(680px 280px at 0% 0%, rgba(37, 99, 235, 0.06), transparent 50%),
+        var(--bg);
     }
     .dept-board-inner { max-width: var(--max); margin: 0 auto; }
     .board-grid {
@@ -881,7 +946,7 @@
     .more-link {
       font-size: 13px;
       font-weight: 700;
-      color: var(--muted);
+      color: var(--blue-600);
     }
     .more-link:hover { color: var(--navy-900); }
     .grade-tabs {
