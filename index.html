@@ -12,7 +12,7 @@
         window.location.replace(path + "/" + window.location.search + window.location.hash);
         return;
       }
-      window.SITE_VER = "42";
+      window.SITE_VER = "43";
       const params = new URLSearchParams(window.location.search);
       if (params.get("v") !== window.SITE_VER) {
         params.set("v", window.SITE_VER);
@@ -28,10 +28,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site-v18.css?v=42" />
+  <link rel="stylesheet" href="css/site-v18.css?v=43" />
 </head>
 <body data-page="home">
-  <script src="js/chrome.js?v=42"></script>
+  <script src="js/chrome.js?v=43"></script>
   <script>document.write(DaechiChrome.header());</script>
 
   <main>
@@ -101,23 +101,20 @@
         </div>
         <div class="feature-grid">
           <article class="feature-card">
-            <div class="feature-icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Z" stroke="currentColor" stroke-width="1.8"/><path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            </div>
+            <span class="feature-no" aria-hidden="true">01</span>
+            <span class="feature-label" data-bind="feature1Label">PERSONALIZED CLASS</span>
             <h3 data-bind="feature1Title">소수 정예 맞춤 수업</h3>
             <p data-bind="feature1Desc">학생 수보다 수업의 밀도를 우선합니다. 현재 레벨과 목표 학교에 맞춰 진도와 숙제를 조정합니다.</p>
           </article>
           <article class="feature-card">
-            <div class="feature-icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19V5m0 14h16M8 16V9m6 7V7m5 9v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            </div>
+            <span class="feature-no" aria-hidden="true">02</span>
+            <span class="feature-label" data-bind="feature2Label">LEVEL MANAGEMENT</span>
             <h3 data-bind="feature2Title">체계적인 레벨 관리</h3>
             <p data-bind="feature2Desc">입학 상담부터 월간 성취 점검까지, 실력 변화를 숫자와 피드백으로 확인할 수 있게 운영합니다.</p>
           </article>
           <article class="feature-card">
-            <div class="feature-icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m14 15 2 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
+            <span class="feature-no" aria-hidden="true">03</span>
+            <span class="feature-label" data-bind="feature3Label">BALANCED GOALS</span>
             <h3 data-bind="feature3Title">내신과 수능의 균형</h3>
             <p data-bind="feature3Desc">학교 시험과 장기 입시를 따로 두지 않습니다. 학년별 우선순위를 분명히 해 시간을 낭비하지 않습니다.</p>
           </article>
@@ -213,7 +210,7 @@
           <div class="field">
             <label>로고 이미지 <span class="hint">헤더에 표시됩니다. 원본 비율을 유지하고, 큰 그림은 별도 파일로 올라갑니다.</span></label>
             <div class="logo-upload">
-              <img id="logoPreview" class="logo-preview" src="img/logo.png?v=42" alt="로고 미리보기" />
+              <img id="logoPreview" class="logo-preview" src="img/logo.png?v=43" alt="로고 미리보기" />
               <div class="logo-upload-actions">
                 <label class="file-btn">
                   이미지 올리기
@@ -359,6 +356,10 @@
             <textarea name="featuresIntro"></textarea>
           </div>
           <div class="field">
+            <label>특징 1 영문</label>
+            <input name="feature1Label" maxlength="32" />
+          </div>
+          <div class="field">
             <label>특징 1 제목</label>
             <input name="feature1Title" />
           </div>
@@ -367,12 +368,20 @@
             <textarea name="feature1Desc"></textarea>
           </div>
           <div class="field">
+            <label>특징 2 영문</label>
+            <input name="feature2Label" maxlength="32" />
+          </div>
+          <div class="field">
             <label>특징 2 제목</label>
             <input name="feature2Title" />
           </div>
           <div class="field">
             <label>특징 2 설명</label>
             <textarea name="feature2Desc"></textarea>
+          </div>
+          <div class="field">
+            <label>특징 3 영문</label>
+            <input name="feature3Label" maxlength="32" />
           </div>
           <div class="field">
             <label>특징 3 제목</label>
@@ -435,6 +444,6 @@
 
   <div class="toast" id="toast">저장되었습니다. 메인 화면에 반영했어요.</div>
 
-  <script src="js/app-v8.js?v=42"></script>
+  <script src="js/app-v8.js?v=43"></script>
 </body>
 </html>

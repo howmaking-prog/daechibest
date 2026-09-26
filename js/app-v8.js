@@ -6,7 +6,7 @@ const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_PASS_DEFAULT = "best1369";
 const ADMIN_SESSION_KEY = "daechibest_admin_session";
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
-const ASSET_VER = window.SITE_VER || "42";
+const ASSET_VER = window.SITE_VER || "43";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
 const REPO_RAW_URL = "https://raw.githubusercontent.com/howmaking-prog/daechibest/main/data/site.json";
@@ -46,10 +46,13 @@ const DEFAULT_CONTENT = {
   featuresKicker: "Features",
   featuresTitle: "대치베스트만의 핵심 특징",
   featuresIntro: "학생 한 명의 현재 실력과 다음 목표를 기준으로 수업과 숙제, 피드백을 설계합니다.",
+  feature1Label: "PERSONALIZED CLASS",
   feature1Title: "소수 정예 맞춤 수업",
   feature1Desc: "학생 수보다 수업의 밀도를 우선합니다. 현재 레벨과 목표 학교에 맞춰 진도와 숙제를 조정합니다.",
+  feature2Label: "LEVEL MANAGEMENT",
   feature2Title: "체계적인 레벨 관리",
   feature2Desc: "입학 상담부터 월간 성취 점검까지, 실력 변화를 숫자와 피드백으로 확인할 수 있게 운영합니다.",
+  feature3Label: "BALANCED GOALS",
   feature3Title: "내신과 수능의 균형",
   feature3Desc: "학교 시험과 장기 입시를 따로 두지 않습니다. 학년별 우선순위를 분명히 해 시간을 낭비하지 않습니다.",
   contactKicker: "Location",
