@@ -19,6 +19,9 @@ const DEFAULT_CONTENT = {
   academyName: "대치베스트 어학원",
   logoText: "대",
   logoImage: DEFAULT_LOGO,
+  // 홈 상단 밝은 블록. 관리자 설정에서 바꿀 수 있습니다.
+  introTitle: "믿을 수 있는 영어 교육의 시작",
+  introText: "2004년 개원 이래 21년간 함께해주신 학부모님과 학생 여러분께 깊이 감사드립니다. 앞으로도 정성과 노력으로 보답하겠습니다.",
   heroSlogan: "대치동의 기준이 되는 영어",
   heroSub: "초등부터 고등까지, 실력과 자신감을 함께 키우는 대치베스트 어학원입니다. 소수 정예 수업과 체계적인 레벨 관리로 한 명 한 명의 성장을 책임집니다.",
   heroCta: "상담 예약하기",
@@ -73,7 +76,7 @@ const DEFAULT_CONTENT = {
   middleName: "중등부",
   highName: "고등부",
   // 홈 카드 학년 범위. 초등 시간표 탭(5·6학년)과 같게 맞춥니다.
-  elemRange: "초등 5–6",
+  elemRange: "초등 5, 6학년",
   middleRange: "중1–중3",
   highRange: "고1–고3",
   elemDesc: "읽기의 기초와 어휘 습관을 먼저 세웁니다. 문법 용어보다 문장이 만들어지는 감각을 익혀, 중등 내신으로 자연스럽게 연결합니다.",
@@ -114,6 +117,8 @@ const mergeHomepage = (saved) => {
   Object.keys(LEGACY_CONTACT).forEach((key) => {
     if (saved && saved[key] === LEGACY_CONTACT[key]) merged[key] = DEFAULT_CONTENT[key];
   });
+  // 예전 기본 학년 표기는 상단 카드 문구로 맞춥니다.
+  if (!saved || saved.elemRange === "초등 5–6") merged.elemRange = DEFAULT_CONTENT.elemRange;
   return merged;
 };
 

@@ -67,36 +67,25 @@
   </header>
 
   <main>
-    <section class="hero" id="home">
-      <div class="hero-inner">
-        <div>
-          <div class="eyebrow" data-bind="eyebrow">Daechi Best Academy</div>
-          <h1 data-bind="heroSlogan">대치동의 기준이 되는 영어</h1>
-          <p class="hero-sub" data-bind="heroSub">초등부터 고등까지, 실력과 자신감을 함께 키우는 대치베스트 어학원입니다. 소수 정예 수업과 체계적인 레벨 관리로 한 명 한 명의 성장을 책임집니다.</p>
-          <div class="hero-actions">
-            <a class="btn-primary" href="#contact" data-bind="heroCta">상담 예약하기</a>
-            <a class="btn-ghost" href="#curriculum" data-bind="heroGhostCta">커리큘럼 보기</a>
-          </div>
-        </div>
-        <aside class="hero-panel" id="curriculum">
-          <div class="hero-panel-title" data-bind="heroPanelTitle">Trust. Proven. Growth.</div>
-          <p data-bind="heroPanelSub">대치동 영어 교육의 기본을 지키며, 학생의 다음 단계를 설계합니다.</p>
-          <!-- 헤로 패널 3칸이 초·중·고 유일한 입장입니다. -->
-          <nav class="hero-stats" aria-label="학년 커리큘럼">
-            <a class="stat" href="elementary.html">
-              <strong data-bind="elemName">초등부</strong>
-              <span data-bind="elemEn">ELEMENTARY</span>
-            </a>
-            <a class="stat" href="middle.html">
-              <strong data-bind="middleName">중등부</strong>
-              <span data-bind="middleEn">MIDDLE</span>
-            </a>
-            <a class="stat" href="high.html">
-              <strong data-bind="highName">고등부</strong>
-              <span data-bind="highEn">HIGH SCHOOL</span>
-            </a>
-          </nav>
-        </aside>
+    <!-- 홈 상단: 흰 배경 제목·본문과 초중고 카드만 둡니다. -->
+    <section class="intro" id="home">
+      <div class="intro-inner">
+        <h1 data-bind="introTitle">믿을 수 있는 영어 교육의 시작</h1>
+        <p class="intro-lead" data-bind="introText">2004년 개원 이래 21년간 함께해주신 학부모님과 학생 여러분께 깊이 감사드립니다. 앞으로도 정성과 노력으로 보답하겠습니다.</p>
+        <nav class="intro-cards" id="curriculum" aria-label="학년 커리큘럼">
+          <a class="intro-card" href="elementary.html">
+            <strong data-bind="elemName">초등부</strong>
+            <span data-bind="elemRange">초등 5, 6학년</span>
+          </a>
+          <a class="intro-card" href="middle.html">
+            <strong data-bind="middleName">중등부</strong>
+            <span data-bind="middleRange">중1–중3</span>
+          </a>
+          <a class="intro-card" href="high.html">
+            <strong data-bind="highName">고등부</strong>
+            <span data-bind="highRange">고1–고3</span>
+          </a>
+        </nav>
       </div>
     </section>
 
@@ -274,15 +263,23 @@
           </div>
         </section>
           <div class="field">
-            <label>상단 영문 문구 <span class="hint">Daechi Best Academy 같이 제목 위에 보이는 글</span></label>
+            <label>상단 제목</label>
+            <input name="introTitle" maxlength="40" />
+          </div>
+          <div class="field">
+            <label>상단 본문</label>
+            <textarea name="introText"></textarea>
+          </div>
+          <div class="field">
+            <label>상단 영문 문구 <span class="hint">지금은 화면에 쓰지 않습니다</span></label>
             <input name="eyebrow" maxlength="40" />
           </div>
           <div class="field">
-            <label>슬로건 <span class="hint">가장 크게 보이는 제목</span></label>
+            <label>예전 슬로건 <span class="hint">지금은 화면에 쓰지 않습니다</span></label>
             <input name="heroSlogan" maxlength="40" />
           </div>
           <div class="field">
-            <label>보조 설명</label>
+            <label>예전 보조 설명 <span class="hint">지금은 화면에 쓰지 않습니다</span></label>
             <textarea name="heroSub"></textarea>
           </div>
           <div class="field">
@@ -391,7 +388,7 @@
 
         <section class="admin-section">
           <h3>커리큘럼 카드 / 학년 범위</h3>
-          <p class="admin-hint">부서 이름과 영문 표기는 메인 오른쪽 패널 3칸과 메뉴에 보입니다. 학년 범위는 시간표 탭과 같게 맞출 수 있습니다.</p>
+          <p class="admin-hint">부서 이름과 학년 범위는 홈 상단 카드와 메뉴에 보입니다. 학년 범위는 시간표 탭과 같게 맞출 수 있습니다.</p>
           <div class="field">
             <label>커리큘럼 구역 제목</label>
             <input name="curriculumTitle" maxlength="40" />
