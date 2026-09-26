@@ -238,7 +238,6 @@ let adminSlideIndex = 0;
 let adminNoticeIndex = 0;
 let adminDraft = null;
 let scheduleShowsAll = false;
-let noticesExpanded = false;
 
 const emptyTerm = () => ({ name: "새 학기", period: "", rows: [] });
 const fallbackColumns = ["요일", "시간", "수업"];
@@ -733,17 +732,9 @@ const renderTimetable = (data) => {
 
 const renderNotices = (data) => {
   const list = document.querySelector("#noticeList");
-  const col = document.querySelector(".notice-col");
-  if (col) col.classList.toggle("is-expanded", noticesExpanded);
-  const more = document.querySelector("#noticeMore");
-  if (more) {
-    more.textContent = noticesExpanded ? "접기" : "더보기 >";
-    more.classList.toggle("is-active", noticesExpanded);
-  }
   if (!list) return;
   list.innerHTML = data.notices.map((item, index) => {
     if (!(item.title || "").trim()) return "";
-    const body = (item.body || "").trim();
     const params = new URLSearchParams();
     params.set("dept", currentPage());
     params.set("n", String(index));
@@ -757,7 +748,6 @@ const renderNotices = (data) => {
         </span>
         <span class="notice-date">${escapeHtml(item.date)}</span>
       </a>
-      ${body ? `<p class="notice-full">${escapeHtml(item.body)}</p>` : ""}
     </li>
   `;
   }).join("");
@@ -876,12 +866,6 @@ const initBoards = () => {
     const btn = event.target.closest("button[data-time]");
     if (!btn) return;
     openSchedule(Number(btn.dataset.time));
-  });
-  document.querySelector("#noticeMore")?.addEventListener("click", (event) => {
-    event.preventDefault();
-    noticesExpanded = !noticesExpanded;
-    renderNotices(currentData());
-    if (noticesExpanded) document.querySelector("#noticeList")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
   document.querySelector("#timeMore")?.addEventListener("click", (event) => {
     event.preventDefault();

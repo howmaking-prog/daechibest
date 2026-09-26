@@ -18,7 +18,6 @@ const CURRICULUM_PAGES = ["elementary", "middle", "high"];
 const SHARED_HOME_KEYS = ["academyName", "logoImage", "phone", "hours", "address"];
 const DEFAULT_CONTENT = {
   academyName: "대치베스트 어학원",
-  logoText: "대",
   logoImage: DEFAULT_LOGO,
   heroSlogan: "대치동의 기준이 되는 영어",
   heroSub: "초등부터 고등까지, 실력과 자신감을 함께 키우는 대치베스트 어학원입니다. 소수 정예 수업과 체계적인 레벨 관리로 한 명 한 명의 성장을 책임집니다.",
@@ -39,12 +38,6 @@ const DEFAULT_CONTENT = {
   program3Range: "고1–고3",
   program3Desc: "내신 고득점과 수능 독해 속도를 동시에 관리합니다. 약점 유형을 분리해 클리닉으로 보완합니다.",
   programMore: "자세히 보기 →",
-  heroStat1Title: "초·중·고",
-  heroStat1Desc: "연계 커리큘럼",
-  heroStat2Title: "콘텐츠",
-  heroStat2Desc: "연구 시스템",
-  heroStat3Title: "강사진",
-  heroStat3Desc: "맞춤 밀착관리",
   aboutKicker: "About",
   aboutTitle: "실력의 기본을 세우는 학원",
   aboutText: "대치베스트 어학원은 초·중·고 영어를 한 흐름으로 가르치는 대치동 영어 전문 학원입니다.\n\n문법, 독해, 어휘, 작문을 학년별 목표에 맞게 나누고, 수업 이후 복습과 클리닉까지 연결해 성적이 쌓이는 구조를 만듭니다.",
@@ -89,11 +82,14 @@ let adminUnlocked = false;
 let memory = { v: 6, updatedAt: 0, homepage: null, curriculum: null, homepageUpdatedAt: 0, curriculumUpdatedAt: {}, syncToken: "" };
 let editStamp = { homepageAt: 0, pageAt: 0, homepage: null };
 
+const UNUSED_HOME_KEYS = ["logoText", "heroStat1Title", "heroStat1Desc", "heroStat2Title", "heroStat2Desc", "heroStat3Title", "heroStat3Desc"];
+
 const mergeHomepage = (saved) => {
   const merged = { ...DEFAULT_CONTENT, ...(saved || {}) };
   Object.keys(LEGACY_CONTACT).forEach((key) => {
     if (saved && saved[key] === LEGACY_CONTACT[key]) merged[key] = DEFAULT_CONTENT[key];
   });
+  UNUSED_HOME_KEYS.forEach((key) => { delete merged[key]; });
   return merged;
 };
 
@@ -965,11 +961,7 @@ const initAdmin = () => {
     });
   }
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      closeAdmin();
-      const modal = $("#noticeModal");
-      if (modal) modal.classList.remove("is-open");
-    }
+    if (event.key === "Escape") closeAdmin();
   });
   const modeTabs = $("#adminModeTabs");
   if (modeTabs && modeTabs.dataset.bound !== "1") {

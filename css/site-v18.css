@@ -1198,16 +1198,6 @@
     .board-list a:hover { color: #9ec1ff; }
     .board-list button.is-active { color: #e8d7a8; }
     .more-link.is-active { color: #e8d7a8; }
-    .notice-full {
-      display: none;
-      margin: 0;
-      padding: 0 2px 16px;
-      color: rgba(255, 255, 255, 0.72);
-      font-size: 14px;
-      line-height: 1.65;
-      white-space: pre-line;
-    }
-    .notice-col.is-expanded .notice-full { display: block; }
     .notice-title {
       flex: 1;
       min-width: 0;
