@@ -6,7 +6,7 @@ const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_PASS_DEFAULT = "best1369";
 const ADMIN_SESSION_KEY = "daechibest_admin_session";
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
-const ASSET_VER = "6";
+const ASSET_VER = window.SITE_VER || "34";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
 const REPO_RAW_URL = "https://raw.githubusercontent.com/howmaking-prog/daechibest/main/data/site.json";
@@ -652,7 +652,36 @@ const setAdminMode = (mode) => {
   if (showCur && typeof window.activateCurriculumAdmin === "function") window.activateCurriculumAdmin();
 };
 
-const openAdmin = () => {
+// 홈 방문자는 관리자를 열 때만 커리큘럼 편집 코드를 받습니다.
+let curriculumScriptPromise = null;
+const ensureCurriculumScript = () => {
+  if (typeof window.setCurriculumStore === "function") return Promise.resolve();
+  if (curriculumScriptPromise) return curriculumScriptPromise;
+  curriculumScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = `js/curriculum-v10.js?v=${window.SITE_VER || ASSET_VER}`;
+    script.onload = () => resolve();
+    script.onerror = () => {
+      curriculumScriptPromise = null;
+      reject(new Error("curriculum-script"));
+    };
+    document.body.appendChild(script);
+  });
+  return curriculumScriptPromise;
+};
+
+const openAdmin = async () => {
+  if ((document.body.dataset.page || "") === "home") {
+    try {
+      await ensureCurriculumScript();
+      if (memory.curriculum && typeof window.setCurriculumStore === "function") {
+        window.setCurriculumStore(memory.curriculum);
+      }
+    } catch (error) {
+      console.error("커리큘럼 편집 화면을 불러오지 못했습니다.", error);
+      showToast("커리큘럼 편집 화면을 불러오지 못했습니다.");
+    }
+  }
   const fold = $("#syncFold");
   if (fold) delete fold.dataset.ready;
   fillAdminForm(loadContent());
@@ -1007,4 +1036,6 @@ window.DaechiBest = {
   $, $$, loadContent, saveContent, applyContent, showToast, DEFAULT_CONTENT, TOKEN_CREATE_URL
 };
 
-document.addEventListener("DOMContentLoaded", init);
+// document.write로 머리글을 넣은 뒤에는 이 시점에 문서 준비가 이미 끝난 경우가 있습니다.
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+else init();

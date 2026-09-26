@@ -68,11 +68,11 @@ const DEFAULT_CURRICULUM = {
       }
     ],
     notices: [
-      { important: true, title: "2026년 2학기 초등부 레벨 테스트 일정 안내", date: "2026.08.20", body: "2학기 반 배정을 위한 레벨 테스트를 진행합니다.\n예약은 전화 상담 후 확정됩니다." },
-      { important: true, title: "초등부 학원 출결 및 숙제 운영 안내", date: "2026.06.16", body: "결석 시 당일 연락을 부탁드리며, 숙제는 수업 다음 날까지 제출하는 것을 원칙으로 합니다." },
-      { important: false, title: "여름방학 특강 수강 신청 안내", date: "2026.06.02", body: "초등 리딩 집중반과 어휘·쓰기 특강을 개설합니다. 정원 마감 시 대기 등록이 가능합니다." },
-      { important: false, title: "학부모 상담 주간 운영 안내", date: "2026.05.12", body: "학기 중 상담 주간을 운영합니다. 원하시는 시간을 미리 예약해 주세요." },
-      { important: false, title: "초등부 교재 및 준비물 안내", date: "2026.03.03", body: "정규 수업 교재는 학원에서 일괄 준비합니다. 별도 준비물은 개강 전 안내드립니다." }
+      { id: "el-1", important: true, title: "2026년 2학기 초등부 레벨 테스트 일정 안내", date: "2026.08.20", body: "2학기 반 배정을 위한 레벨 테스트를 진행합니다.\n예약은 전화 상담 후 확정됩니다." },
+      { id: "el-2", important: true, title: "초등부 학원 출결 및 숙제 운영 안내", date: "2026.06.16", body: "결석 시 당일 연락을 부탁드리며, 숙제는 수업 다음 날까지 제출하는 것을 원칙으로 합니다." },
+      { id: "el-3", important: false, title: "여름방학 특강 수강 신청 안내", date: "2026.06.02", body: "초등 리딩 집중반과 어휘·쓰기 특강을 개설합니다. 정원 마감 시 대기 등록이 가능합니다." },
+      { id: "el-4", important: false, title: "학부모 상담 주간 운영 안내", date: "2026.05.12", body: "학기 중 상담 주간을 운영합니다. 원하시는 시간을 미리 예약해 주세요." },
+      { id: "el-5", important: false, title: "초등부 교재 및 준비물 안내", date: "2026.03.03", body: "정규 수업 교재는 학원에서 일괄 준비합니다. 별도 준비물은 개강 전 안내드립니다." }
     ]
   },
   middle: {
@@ -140,11 +140,11 @@ const DEFAULT_CURRICULUM = {
       }
     ],
     notices: [
-      { important: true, title: "중등부 2학기 내신 집중 기간 운영 안내", date: "2026.08.28", body: "학교별 시험 범위에 맞춰 2주간 내신 집중 수업을 진행합니다. 해당 주차 시간표는 개별 안내드립니다." },
-      { important: true, title: "학원 규정 및 학습 관리 안내", date: "2026.06.16", body: "출결, 숙제, 휴대폰 사용에 대한 학원 규정을 확인해 주세요. 반복 미제출 시 학부모께 연락드립니다." },
-      { important: false, title: "중1·중2 레벨 테스트 일정 안내", date: "2026.05.28", body: "신규 등록 및 반 이동을 위한 레벨 테스트를 시행합니다. 사전 예약이 필요합니다." },
-      { important: false, title: "여름특강 고등 구문 예비반 개설", date: "2026.05.10", body: "중3 대상 고등 예비 구문 특강을 개설합니다. 정원 제한이 있어 조기 마감될 수 있습니다." },
-      { important: false, title: "중등부 교재 변경 안내", date: "2026.02.20", body: "2학기부터 독해 교재가 변경됩니다. 기존 수강생은 수업 중 별도 안내합니다." }
+      { id: "mid-1", important: true, title: "중등부 2학기 내신 집중 기간 운영 안내", date: "2026.08.28", body: "학교별 시험 범위에 맞춰 2주간 내신 집중 수업을 진행합니다. 해당 주차 시간표는 개별 안내드립니다." },
+      { id: "mid-2", important: true, title: "학원 규정 및 학습 관리 안내", date: "2026.06.16", body: "출결, 숙제, 휴대폰 사용에 대한 학원 규정을 확인해 주세요. 반복 미제출 시 학부모께 연락드립니다." },
+      { id: "mid-3", important: false, title: "중1·중2 레벨 테스트 일정 안내", date: "2026.05.28", body: "신규 등록 및 반 이동을 위한 레벨 테스트를 시행합니다. 사전 예약이 필요합니다." },
+      { id: "mid-4", important: false, title: "여름특강 고등 구문 예비반 개설", date: "2026.05.10", body: "중3 대상 고등 예비 구문 특강을 개설합니다. 정원 제한이 있어 조기 마감될 수 있습니다." },
+      { id: "mid-5", important: false, title: "중등부 교재 변경 안내", date: "2026.02.20", body: "2학기부터 독해 교재가 변경됩니다. 기존 수강생은 수업 중 별도 안내합니다." }
     ]
   },
   high: {
@@ -212,11 +212,11 @@ const DEFAULT_CURRICULUM = {
       }
     ],
     notices: [
-      { important: true, title: "고등부 2학기 내신반·수능반 편성 안내", date: "2026.08.30", body: "2학기부터 내신 집중과 수능 유형 수업을 요일별로 나눕니다. 반 이동은 상담 후 확정됩니다." },
-      { important: true, title: "학원 규정 및 학습 관리 안내", date: "2026.06.16", body: "고등부는 자습 공간 이용 규칙을 포함해 운영 규정을 적용합니다. 자세한 내용은 학원에 비치된 안내문을 참고해 주세요." },
-      { important: false, title: "모의고사 오답 클리닉 운영 안내", date: "2026.04.25", body: "전국 모의고사 다음 주 토요일에 오답 클리닉을 진행합니다. 응시 기록이 있는 수강생 우선입니다." },
-      { important: false, title: "고1·고2 3월 내신반 개강 안내", date: "2026.01.28", body: "3월 개강 내신반은 레벨 테스트 후 반 배정됩니다. 신청은 전화로 받아 드립니다." },
-      { important: false, title: "고3 수능 직전 보강 일정 안내", date: "2026.01.10", body: "수능 전 2주간 약점 유형 보강을 운영합니다. 대상 학생에게 개별 연락드립니다." }
+      { id: "hi-1", important: true, title: "고등부 2학기 내신반·수능반 편성 안내", date: "2026.08.30", body: "2학기부터 내신 집중과 수능 유형 수업을 요일별로 나눕니다. 반 이동은 상담 후 확정됩니다." },
+      { id: "hi-2", important: true, title: "학원 규정 및 학습 관리 안내", date: "2026.06.16", body: "고등부는 자습 공간 이용 규칙을 포함해 운영 규정을 적용합니다. 자세한 내용은 학원에 비치된 안내문을 참고해 주세요." },
+      { id: "hi-3", important: false, title: "모의고사 오답 클리닉 운영 안내", date: "2026.04.25", body: "전국 모의고사 다음 주 토요일에 오답 클리닉을 진행합니다. 응시 기록이 있는 수강생 우선입니다." },
+      { id: "hi-4", important: false, title: "고1·고2 3월 내신반 개강 안내", date: "2026.01.28", body: "3월 개강 내신반은 레벨 테스트 후 반 배정됩니다. 신청은 전화로 받아 드립니다." },
+      { id: "hi-5", important: false, title: "고3 수능 직전 보강 일정 안내", date: "2026.01.10", body: "수능 전 2주간 약점 유형 보강을 운영합니다. 대상 학생에게 개별 연락드립니다." }
     ]
   }
 };
@@ -737,7 +737,8 @@ const renderNotices = (data) => {
     if (!(item.title || "").trim()) return "";
     const params = new URLSearchParams();
     params.set("dept", currentPage());
-    params.set("n", String(index));
+    if (item.id) params.set("id", item.id);
+    else params.set("n", String(index));
     const href = `notice.html#${params.toString()}`;
     return `
     <li>
@@ -883,7 +884,10 @@ const emptySlide = () => ({
   note: ""
 });
 
+const newNoticeId = () => `n${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
 const emptyNotice = () => ({
+  id: newNoticeId(),
   title: "",
   date: "",
   body: "",
@@ -920,7 +924,9 @@ const readNoticesFromForm = (form) => {
   const block = form.querySelector("[data-notice-block]");
   if (!block) return notices;
   const i = Number(block.dataset.noticeBlock);
+  const previous = notices[i] || {};
   notices[i] = {
+    id: previous.id || newNoticeId(),
     title: withFormText(form, "noticeTitle", ""),
     date: withFormText(form, "noticeDate", ""),
     body: withFormText(form, "noticeBody", ""),
@@ -1176,7 +1182,10 @@ const resetCurriculumAdmin = () => {
   const defaults = DEFAULT_CURRICULUM[currentPage()] || DEFAULT_CURRICULUM.elementary;
   adminDraft = normalizePage(deepCopy(current), currentPage());
   adminDraft.slides = deepCopy(defaults.slides);
-  adminDraft.notices = deepCopy(defaults.notices);
+  adminDraft.notices = deepCopy(defaults.notices).map((item, i) => ({
+    ...item,
+    id: item.id || `default-${currentPage()}-${i + 1}`
+  }));
   bindSlideNoticeAdmin(form);
   rebuildSlidesAdmin(form);
   rebuildNoticesAdmin(form);
@@ -1189,14 +1198,16 @@ const DEPT_FILES = {
   high: "high.html"
 };
 
-// 공지 목록의 번호로 상세 페이지를 채웁니다. 원격 저장이 도착하면 다시 그립니다.
+// 공지 고유 번호로 상세 페이지를 채웁니다. 예전 주소의 순서 번호도 그대로 엽니다.
 const renderNoticePage = () => {
   const root = document.querySelector(".notice-page");
   if (!root) return;
   const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const searchParams = new URLSearchParams(window.location.search);
   const dept = hashParams.get("dept") || searchParams.get("dept");
-  const index = Number(hashParams.get("n") || searchParams.get("n"));
+  const noticeId = hashParams.get("id") || searchParams.get("id");
+  const hasIndex = hashParams.has("n") || searchParams.has("n");
+  const index = Number(hashParams.has("n") ? hashParams.get("n") : searchParams.get("n"));
   const labels = { elementary: "초등부", middle: "중등부", high: "고등부" };
   const file = DEPT_FILES[dept] || "index.html";
   const back = document.querySelector("#noticeBack");
@@ -1212,7 +1223,9 @@ const renderNoticePage = () => {
     parent.classList.add("is-active");
   }
   const page = DEPT_FILES[dept] ? loadCurriculum()[dept] : null;
-  const item = page && Array.isArray(page.notices) ? page.notices[index] : null;
+  const notices = page && Array.isArray(page.notices) ? page.notices : [];
+  let item = noticeId ? notices.find((notice) => notice && notice.id === noticeId) : null;
+  if (!item && hasIndex && Number.isInteger(index) && index >= 0) item = notices[index] || null;
   const titleEl = document.querySelector("#noticeTitle");
   const kicker = document.querySelector("#noticeKicker");
   const dateEl = document.querySelector("#noticeDate");
@@ -1285,3 +1298,12 @@ window.initCurriculumUI = () => {
   initSlider();
   initBoards();
 };
+
+// 공통 스크립트가 먼저 준비되면, 학년 페이지는 이 파일이 도착한 뒤에 다시 그립니다.
+if (document.readyState !== "loading") {
+  const page = (document.body && document.body.dataset.page) || "";
+  if (page && page !== "home") {
+    renderCurriculumPage();
+    window.initCurriculumUI();
+  }
+}
