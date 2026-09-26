@@ -7,7 +7,7 @@ const deptNames = {
   notice: "공지"
 };
 
-const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "44"}`;
+const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "45"}`;
 
 const header = () => {
   const page = document.body.dataset.page || "home";
@@ -54,30 +54,34 @@ const header = () => {
 const footer = (withAdmin) => `
   <footer class="site-footer">
     <div class="footer-inner">
-      <a class="footer-brand" href="index.html">
-        <span class="brand-mark">
-          <img data-logo src="${logoSrc()}" alt="대치베스트 어학원 로고" />
-        </span>
-        <span class="brand-name" data-bind="academyName">대치베스트 어학원</span>
-      </a>
-      <dl class="footer-contact">
-        <div>
-          <dt>주소</dt>
-          <dd data-bind="address">서울 강남구 선릉로 64길 11-2, 6층</dd>
-        </div>
-        <div>
-          <dt>전화</dt>
-          <dd><a data-phone-link data-bind="phone" href="tel:02-556-3510">02-556-3510</a></dd>
-        </div>
-        <div>
-          <dt>운영 시간</dt>
-          <dd data-bind="hours">평일: 14:00 ~ 22:00
+      <div class="footer-main">
+        <a class="footer-brand" href="index.html">
+          <span class="brand-mark">
+            <img data-logo src="${logoSrc()}" alt="대치베스트 어학원 로고" />
+          </span>
+          <span class="brand-name" data-bind="academyName">대치베스트 어학원</span>
+        </a>
+        <dl class="footer-contact">
+          <div>
+            <dt>주소</dt>
+            <dd data-bind="address">서울 강남구 선릉로 64길 11-2, 6층</dd>
+          </div>
+          <div>
+            <dt>전화</dt>
+            <dd><a data-phone-link data-bind="phone" href="tel:02-556-3510">02-556-3510</a></dd>
+          </div>
+          <div>
+            <dt>운영 시간</dt>
+            <dd data-bind="hours">평일: 14:00 ~ 22:00
 토요일: 10:00 ~ 18:00
 일요일 휴무</dd>
-        </div>
-      </dl>
-      <p class="copyright">© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</p>
-      ${withAdmin ? '<button type="button" class="footer-admin" id="adminOpen">관리자</button>' : ""}
+          </div>
+        </dl>
+      </div>
+      <div class="footer-bar">
+        <p class="copyright">© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</p>
+        ${withAdmin ? '<button type="button" class="footer-admin" id="adminOpen">관리자</button>' : ""}
+      </div>
     </div>
   </footer>`;
 

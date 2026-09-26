@@ -6,7 +6,7 @@ const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_PASS_DEFAULT = "best1369";
 const ADMIN_SESSION_KEY = "daechibest_admin_session";
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
-const ASSET_VER = window.SITE_VER || "44";
+const ASSET_VER = window.SITE_VER || "45";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
 const REPO_RAW_URL = "https://raw.githubusercontent.com/howmaking-prog/daechibest/main/data/site.json";
