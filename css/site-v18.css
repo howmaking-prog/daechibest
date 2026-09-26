@@ -349,13 +349,11 @@
     .about-visual h3 { font-size: 26px; margin-bottom: 8px; }
     .about-visual p { color: rgba(255,255,255,0.75); }
 
-    /* 핵심 특징: 번호·영문·제목·설명이 세로로 쌓인 흰 카드 */
+    /* 핵심 특징: PC는 가로 3열, 좁은 화면은 세로 1열 */
     .feature-grid {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
-      max-width: 680px;
-      margin: 0 auto;
     }
     .feature-card {
       background: #fff;

@@ -7,7 +7,7 @@ const deptNames = {
   notice: "공지"
 };
 
-const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "43"}`;
+const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "44"}`;
 
 const header = () => {
   const page = document.body.dataset.page || "home";
