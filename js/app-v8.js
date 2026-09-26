@@ -162,20 +162,39 @@ const updateSyncStatus = () => {
 };
 
 const logoSrc = (data) => {
-  const src = data && data.logoImage ? data.logoImage : DEFAULT_LOGO;
-  // 예전에 저장된 경로에도 캐시 방지용 버전을 붙입니다.
-  if (src === "img/logo.png") return DEFAULT_LOGO;
+  const src = data && data.logoImage ? String(data.logoImage) : DEFAULT_LOGO;
+  // data URL은 일부 기기에서 이미지가 깨지므로 파일로만 보여 줍니다.
+  if (isDataImage(src) || src === LOGO_FILE_PATH || src.startsWith(`${LOGO_FILE_PATH}?`)) {
+    return `${LOGO_FILE_PATH}?v=${ASSET_VER}`;
+  }
+  if (src === "img/logo.png" || src.startsWith("img/logo.png?")) return DEFAULT_LOGO;
   return src;
+};
+
+const wireLogoFallback = (img) => {
+  if (!img || img.dataset.logoReady === "1") return;
+  img.dataset.logoReady = "1";
+  img.addEventListener("error", () => {
+    if (img.dataset.usingFallback === "1") return;
+    img.dataset.usingFallback = "1";
+    img.src = DEFAULT_LOGO;
+  });
 };
 
 const applyLogos = (data) => {
   const src = logoSrc(data);
   $$("[data-logo]").forEach((img) => {
+    wireLogoFallback(img);
+    img.dataset.usingFallback = "";
     img.src = src;
     img.alt = `${data.academyName || "대치베스트 어학원"} 로고`;
   });
   const preview = $("#logoPreview");
-  if (preview) preview.src = src;
+  if (preview) {
+    wireLogoFallback(preview);
+    preview.dataset.usingFallback = "";
+    preview.src = src;
+  }
 };
 
 const loadContent = () => mergeHomepage(memory.homepage);
