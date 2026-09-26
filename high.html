@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site-v18.css?v=22" />
+  <link rel="stylesheet" href="css/site-v18.css?v=23" />
 </head>
 <body data-page="high">
   <header class="site-header">
@@ -100,21 +100,23 @@
         </span>
         <strong data-bind="academyName">대치베스트 어학원</strong>
       </div>
-      <p class="footer-address">
-        <span data-bind="address">서울 강남구 선릉로 64길 11-2, 6층</span>
-        <a data-phone-link data-bind="phone" href="tel:02-556-3510">02-556-3510</a>
-      </p>
       <p class="copyright">© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</p>
+      <button type="button" class="footer-admin" id="adminOpen">관리자</button>
     </div>
   </footer>
 
-  <button class="admin-fab" id="adminOpen" aria-label="관리자 페이지 열기">
-    <span class="admin-fab-tip">관리자</span>
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8"/>
-      <path d="M19.4 13a7.8 7.8 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a7.7 7.7 0 0 0-1.7-1L15 3h-6l-.4 2.5a7.7 7.7 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7.8 7.8 0 0 0 .1 2l-2 1.5 2 3.5 2.4-1a7.7 7.7 0 0 0 1.7 1L9 21h6l.4-2.5a7.7 7.7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5Z" stroke="currentColor" stroke-width="1.8"/>
-    </svg>
-  </button>
+  <div class="admin-lock" id="adminLock" hidden>
+    <form class="admin-lock-card" id="adminLockForm">
+      <h2>관리자 확인</h2>
+      <p>비밀번호를 입력해 주세요.</p>
+      <input type="password" id="adminPassInput" autocomplete="current-password" required />
+      <p class="admin-lock-error" id="adminLockError" hidden>비밀번호가 맞지 않습니다.</p>
+      <div class="admin-lock-actions">
+        <button type="button" class="admin-lock-cancel" id="adminLockCancel">취소</button>
+        <button type="submit" class="admin-lock-ok">확인</button>
+      </div>
+    </form>
+  </div>
 
   <div class="admin-overlay" id="adminOverlay">
     <aside class="admin-panel" role="dialog" aria-labelledby="adminTitle">
@@ -195,7 +197,7 @@
   </div>
 
   <div class="toast" id="toast">저장되었습니다.</div>
-  <script src="js/app-v8.js?v=21"></script>
+  <script src="js/app-v8.js?v=23"></script>
   <script src="js/curriculum-v10.js"></script>
 </body>
 </html>

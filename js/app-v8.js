@@ -2,6 +2,8 @@
 const STORAGE_KEY = "daechibest_homepage_v5";
 const STORE_KEY = "daechibest_sync_v6";
 const TOKEN_KEY = "daechibest_github_token";
+const ADMIN_PASS_KEY = "daechibest_admin_pass";
+const ADMIN_PASS_DEFAULT = "best1369";
 const ASSET_VER = "6";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
@@ -515,6 +517,54 @@ const closeAdmin = () => {
   document.body.style.overflow = "";
 };
 
+// 비밀번호가 없으면 처음 한 번 best1369로 저장합니다.
+const ensureAdminPass = () => {
+  try {
+    if (!localStorage.getItem(ADMIN_PASS_KEY)) localStorage.setItem(ADMIN_PASS_KEY, ADMIN_PASS_DEFAULT);
+  } catch (error) {
+    console.error("관리자 비밀번호를 저장하지 못했습니다.", error);
+  }
+};
+
+const openAdminGate = () => {
+  ensureAdminPass();
+  const lock = $("#adminLock");
+  const input = $("#adminPassInput");
+  const error = $("#adminLockError");
+  if (!lock) {
+    openAdmin();
+    return;
+  }
+  if (error) error.hidden = true;
+  if (input) input.value = "";
+  lock.hidden = false;
+  if (input) input.focus();
+};
+
+const closeAdminGate = () => {
+  const lock = $("#adminLock");
+  if (lock) lock.hidden = true;
+};
+
+const submitAdminGate = (event) => {
+  event.preventDefault();
+  ensureAdminPass();
+  const input = $("#adminPassInput");
+  const error = $("#adminLockError");
+  let saved = ADMIN_PASS_DEFAULT;
+  try {
+    saved = localStorage.getItem(ADMIN_PASS_KEY) || ADMIN_PASS_DEFAULT;
+  } catch (error) {
+    console.error("관리자 비밀번호를 읽지 못했습니다.", error);
+  }
+  if (!input || input.value.trim() !== saved) {
+    if (error) error.hidden = false;
+    return;
+  }
+  closeAdminGate();
+  openAdmin();
+};
+
 const initNav = () => {
   const toggle = $("#menuToggle");
   const nav = $("#navWrap");
@@ -578,7 +628,11 @@ const initAdmin = () => {
   const resetBtn = $("#resetBtn");
   if (!openBtn || !overlay) return;
 
-  openBtn.addEventListener("click", openAdmin);
+  openBtn.addEventListener("click", openAdminGate);
+  const lockForm = $("#adminLockForm");
+  const lockCancel = $("#adminLockCancel");
+  if (lockForm) lockForm.addEventListener("submit", submitAdminGate);
+  if (lockCancel) lockCancel.addEventListener("click", closeAdminGate);
   if (closeBtn) closeBtn.addEventListener("click", closeAdmin);
   overlay.addEventListener("click", (event) => {
     if (event.target.id === "adminOverlay") closeAdmin();

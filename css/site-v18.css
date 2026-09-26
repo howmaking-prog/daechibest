@@ -440,17 +440,6 @@
       box-shadow: none;
     }
     .footer-brand strong { color: #fff; font-size: 18px; }
-    .footer-address {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-      gap: 6px 14px;
-      color: rgba(255,255,255,0.78);
-      font-size: 15px;
-      line-height: 1.6;
-    }
-    .footer-address a { color: var(--gold-soft); }
     .copyright {
       width: min(100%, 420px);
       margin: 6px 0 0;
@@ -459,40 +448,58 @@
       font-size: 13px;
       color: rgba(255,255,255,0.5);
     }
-
-    /* 관리자 진입 버튼 */
-    .admin-fab {
-      position: fixed;
-      right: 22px;
-      bottom: 22px;
-      z-index: 60;
-      width: 58px;
-      height: 58px;
+    .footer-admin {
       border: 0;
-      border-radius: 50%;
-      background: var(--navy-900);
-      color: #fff;
+      background: transparent;
+      color: rgba(255,255,255,0.45);
+      font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 12px 30px rgba(11, 28, 51, 0.35);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .footer-admin:hover { color: var(--gold-soft); }
+
+    /* 관리자 비밀번호 확인 */
+    .admin-lock {
+      position: fixed;
+      inset: 0;
+      z-index: 85;
       display: grid;
       place-items: center;
+      padding: 20px;
+      background: rgba(6, 16, 28, 0.62);
     }
-    .admin-fab:hover { background: var(--navy-700); }
-    .admin-fab-tip {
-      position: absolute;
-      right: 68px;
-      white-space: nowrap;
-      background: var(--navy-900);
-      color: #fff;
-      font-size: 12px;
+    .admin-lock[hidden] { display: none; }
+    .admin-lock-card {
+      width: min(360px, 100%);
+      background: #fff;
+      color: var(--navy-900);
+      border-radius: 18px;
+      padding: 24px;
+    }
+    .admin-lock-card h2 { font-size: 20px; margin-bottom: 6px; }
+    .admin-lock-card > p { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+    .admin-lock-card input {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0 14px;
+      font-size: 16px;
+    }
+    .admin-lock-error { color: #c23030; font-size: 13px; font-weight: 700; margin-top: 8px; }
+    .admin-lock-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .admin-lock-cancel,
+    .admin-lock-ok {
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 999px;
       font-weight: 700;
-      padding: 7px 10px;
-      border-radius: 8px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
+      cursor: pointer;
     }
-    .admin-fab:hover .admin-fab-tip { opacity: 1; }
+    .admin-lock-cancel { border: 1px solid var(--line); background: #fff; color: var(--navy-800); }
+    .admin-lock-ok { border: 0; background: var(--navy-900); color: #fff; }
 
     /* 관리자 패널 */
     .admin-overlay {
@@ -746,7 +753,6 @@
       .hero h1 { word-break: keep-all; }
       section { padding: 72px 18px; }
       .footer-inner { gap: 24px; }
-      .admin-fab { right: 16px; bottom: 16px; }
       .has-sub .sub-nav {
         position: static;
         display: grid;
@@ -760,7 +766,6 @@
       .hero h1 { word-break: keep-all; }
       section { padding: 72px 18px; }
       .footer-inner { gap: 24px; }
-      .admin-fab { right: 16px; bottom: 16px; }
     }
 
     /* 좁은 화면에서 Trust 박스 안 카드가 박스 안에 남도록 여백을 맞춥니다. */
