@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site-v18.css?v=21" />
+  <link rel="stylesheet" href="css/site-v18.css?v=22" />
 </head>
 <body data-page="elementary">
   <header class="site-header">
@@ -94,33 +94,18 @@
 
   <footer class="site-footer">
     <div class="footer-inner">
-      <div>
-        <div class="footer-brand">
-          <span class="brand-mark">
-            <img data-logo src="img/logo.png?v=6" alt="대치베스트 어학원 로고" />
-          </span>
-          <strong data-bind="academyName">대치베스트 어학원</strong>
-        </div>
-        <p data-bind="address">서울 강남구 선릉로 64길 11-2, 6층</p>
-        <p data-bind="phone">02-556-3510</p>
+      <div class="footer-brand">
+        <span class="brand-mark">
+          <img data-logo src="img/logo.png?v=6" alt="대치베스트 어학원 로고" />
+        </span>
+        <strong data-bind="academyName">대치베스트 어학원</strong>
       </div>
-      <div>
-        <h4>바로가기</h4>
-        <ul>
-          <li><a href="elementary.html">초등부</a></li>
-          <li><a href="middle.html">중등부</a></li>
-          <li><a href="high.html">고등부</a></li>
-          <li><a href="index.html#contact">오시는 길</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>운영시간</h4>
-        <p data-bind="hours">평일: 14:00 ~ 22:00
-토요일: 10:00 ~ 18:00
-일요일 휴무</p>
-      </div>
+      <p class="footer-address">
+        <span data-bind="address">서울 강남구 선릉로 64길 11-2, 6층</span>
+        <a data-phone-link data-bind="phone" href="tel:02-556-3510">02-556-3510</a>
+      </p>
+      <p class="copyright">© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</p>
     </div>
-    <p class="copyright">© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</p>
   </footer>
 
   <button class="admin-fab" id="adminOpen" aria-label="관리자 페이지 열기">
