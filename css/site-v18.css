@@ -264,6 +264,8 @@
       border-radius: 999px;
       padding: 4px 10px;
     }
+    .program-tab em:empty,
+    .program-tab em[hidden] { display: none; }
     .program-tab p {
       margin-top: 12px;
       color: var(--muted);

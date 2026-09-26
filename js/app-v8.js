@@ -6,7 +6,7 @@ const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_PASS_DEFAULT = "best1369";
 const ADMIN_SESSION_KEY = "daechibest_admin_session";
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
-const ASSET_VER = window.SITE_VER || "47";
+const ASSET_VER = window.SITE_VER || "48";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
 const REPO_RAW_URL = "https://raw.githubusercontent.com/howmaking-prog/daechibest/main/data/site.json";
@@ -341,6 +341,12 @@ const applyContent = (data) => {
     if (!Object.prototype.hasOwnProperty.call(data, key)) return;
     if (key === "logoImage") return;
     el.textContent = data[key];
+    // 학년 범위가 비어 있으면 회색 알약을 빼고 설명이 바로 붙게 합니다.
+    if (el.matches(".program-tab em")) {
+      const rangeText = String(data[key] || "").trim();
+      el.textContent = rangeText;
+      el.hidden = !rangeText;
+    }
   });
 
   applyLogos(data);
