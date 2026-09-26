@@ -1,17 +1,10 @@
-// 초등·중등·고등 페이지 기본 내용. 실제 수정은 이 파일만 하면 됩니다.
+// 초등·중등·고등 페이지 기본 내용. 함영원 공지/제목은 사용하지 않고 대치베스트 문구로 구성합니다.
 const UNIFIED_STORE_KEY = "daechibest_sync_v6";
 const LEGACY_CURRICULUM_KEY = "daechibest_curriculum";
 
 const DEFAULT_CURRICULUM = {
   elementary: {
     label: "초등부",
-    englishLabel: "ELEMENTARY",
-    rangeLabel: "초등 5–6",
-    courseDesc: "읽기의 기초와 어휘 습관을 먼저 세웁니다. 문법 용어보다 문장이 만들어지는 감각을 익혀, 중등 내신으로 자연스럽게 연결합니다.",
-    timetableTitle: "시간표",
-    noticeTitle: "공지사항",
-    moreLabel: "더보기 >",
-    importantLabel: "중요 공지",
     columns: ["요일", "시간", "수업"],
     slides: [
       {
@@ -84,13 +77,6 @@ const DEFAULT_CURRICULUM = {
   },
   middle: {
     label: "중등부",
-    englishLabel: "MIDDLE",
-    rangeLabel: "중1–중3",
-    courseDesc: "내신 서술형과 수행평가를 놓치지 않으면서, 고등 독해에 필요한 구문과 어휘량을 함께 쌓습니다.",
-    timetableTitle: "시간표",
-    noticeTitle: "공지사항",
-    moreLabel: "더보기 >",
-    importantLabel: "중요 공지",
     columns: ["요일", "시간", "수업"],
     slides: [
       {
@@ -163,13 +149,6 @@ const DEFAULT_CURRICULUM = {
   },
   high: {
     label: "고등부",
-    englishLabel: "HIGH SCHOOL",
-    rangeLabel: "고1–고3",
-    courseDesc: "내신 고득점과 수능 독해 속도를 동시에 관리합니다. 약점 유형을 분리해 클리닉으로 보완합니다.",
-    timetableTitle: "시간표",
-    noticeTitle: "공지사항",
-    moreLabel: "더보기 >",
-    importantLabel: "중요 공지",
     columns: ["요일", "시간", "수업"],
     slides: [
       {
@@ -256,31 +235,18 @@ let selectedTermIndex = 0;
 let adminGradeIndex = 0;
 let adminDraft = null;
 
-const DEFAULT_COLUMNS = ["요일", "시간", "수업"];
-const emptyTerm = (name = "") => ({ name, period: "", rows: [] });
+const emptyTerm = () => ({ period: "", rows: [] });
 
-const normalizeColumns = (cols) => {
-  if (Array.isArray(cols) && cols.length) return cols.map((c) => String(c == null ? "" : c));
-  return DEFAULT_COLUMNS.slice();
+const padTerms = (terms, count) => {
+  const list = Array.isArray(terms) ? terms : [];
+  return Array.from({ length: count }, (_, i) => {
+    const term = list[i] || emptyTerm();
+    return {
+      period: term.period || "",
+      rows: Array.isArray(term.rows) ? deepCopy(term.rows) : []
+    };
+  });
 };
-
-const padRow = (row, count) => Array.from({ length: Math.max(1, count) }, (_, i) => String((row && row[i] != null) ? row[i] : ""));
-
-const normalizeTerm = (term, fallbackName, colCount) => ({
-  name: String((term && term.name) || fallbackName || "").trim(),
-  period: String((term && term.period) || "").trim(),
-  rows: Array.isArray(term && term.rows) ? term.rows.map((row) => padRow(row, colCount)) : []
-});
-
-const moveItem = (list, from, to) => {
-  const next = (list || []).slice();
-  if (from < 0 || to < 0 || from >= next.length || to >= next.length) return next;
-  const [item] = next.splice(from, 1);
-  next.splice(to, 0, item);
-  return next;
-};
-
-const adminScroller = () => document.querySelector(".admin-body");
 
 // 입력칸이 있으면 빈 값도 그대로 쓰고, 칸이 없을 때만 예전 값을 지킵니다.
 const withFormText = (form, name, prev) => {
@@ -289,50 +255,44 @@ const withFormText = (form, name, prev) => {
   return String(field.value || "").trim();
 };
 
-// 예전 한 장짜리 시간표를 첫 학년으로 옮기고, 학년마다 학기·칼럼을 따로 둡니다.
+// 예전 한 장짜리 시간표를 첫 학년으로 옮기고, 저장된 학년·학기 개수는 그대로 살립니다.
 const normalizePage = (page, key) => {
   const next = { ...(page || {}) };
   const names = GRADE_NAMES[key] || ["1학년"];
-  const pageColumns = normalizeColumns(next.columns);
   const timetable = (next.timetable && next.timetable.length)
     ? next.timetable
     : deepCopy((DEFAULT_CURRICULUM[key] || DEFAULT_CURRICULUM.elementary).timetable);
   const savedGrades = Array.isArray(next.grades) ? next.grades.filter(Boolean) : [];
   const hasSavedGrades = savedGrades.some((grade) => Array.isArray(grade.terms));
-  next.timetable = (timetable || []).map((item, i) => ({
-    name: item.name || `학기 ${i + 1}`,
-    period: item.period || "",
-    rows: Array.isArray(item.rows) ? item.rows : []
-  }));
-  const termsFromLegacy = (gradeIndex) => next.timetable.map((item) => ({
-    name: item.name || "",
-    period: gradeIndex === 0 ? (item.period || "") : "",
-    rows: gradeIndex === 0 ? (item.rows || []).map((row) => padRow(row, pageColumns.length)) : []
-  }));
+  const termCount = Math.max(
+    timetable.length,
+    ...savedGrades.map((grade) => (Array.isArray(grade.terms) ? grade.terms.length : 0)),
+    1
+  );
+  next.timetable = Array.from({ length: termCount }, (_, i) => {
+    const item = timetable[i] || {};
+    return {
+      name: item.name || `학기 ${i + 1}`,
+      period: item.period || "",
+      rows: Array.isArray(item.rows) ? item.rows : []
+    };
+  });
   if (hasSavedGrades) {
-    next.grades = savedGrades.map((prev, i) => {
-      const columns = normalizeColumns(prev.columns || pageColumns);
-      const source = Array.isArray(prev.terms) && prev.terms.length ? prev.terms : termsFromLegacy(i);
-      const terms = source.map((term, ti) => normalizeTerm(
-        term,
-        (next.timetable[ti] && next.timetable[ti].name) || `학기 ${ti + 1}`,
-        columns.length
-      ));
-      return {
-        name: (prev.name || "").trim() || names[i] || `학년 ${i + 1}`,
-        columns,
-        terms: terms.length ? terms : [emptyTerm("1학기")]
-      };
-    });
-    next.columns = (next.grades[0] && next.grades[0].columns) || pageColumns;
+    next.grades = savedGrades.map((prev, i) => ({
+      name: (prev.name || "").trim() || names[i] || `학년 ${i + 1}`,
+      terms: padTerms(prev.terms, termCount)
+    }));
     return next;
   }
-  next.grades = names.map((name, i) => ({
-    name,
-    columns: pageColumns.slice(),
-    terms: termsFromLegacy(i).map((term) => normalizeTerm(term, term.name, pageColumns.length))
-  }));
-  next.columns = pageColumns;
+  next.grades = names.map((name, i) => {
+    const fallback = i === 0
+      ? next.timetable.map((item) => ({
+          period: item.period || "",
+          rows: deepCopy(item.rows || [])
+        }))
+      : next.timetable.map(() => emptyTerm());
+    return { name, terms: padTerms(fallback, termCount) };
+  });
   return next;
 };
 
@@ -416,34 +376,35 @@ const escapeHtml = (value) => String(value == null ? "" : value)
   .replace(/>/g, "&gt;")
   .replace(/"/g, "&quot;");
 
-const tableColumns = (data, grade) => {
-  const cols = (grade && grade.columns) || (data && data.columns) || DEFAULT_COLUMNS;
-  return normalizeColumns(cols);
+const tableColumns = (data) => {
+  const fallback = ["요일", "시간", "수업"];
+  const cols = (data && data.columns) || fallback;
+  return [0, 1, 2].map((i) => (cols[i] == null ? fallback[i] : String(cols[i])));
 };
 
 const currentGrade = (data) => {
   const grades = (data && data.grades) || [];
-  if (!grades.length) return { name: "", columns: DEFAULT_COLUMNS.slice(), terms: [] };
+  if (!grades.length) return { name: "", terms: [] };
   if (selectedGradeIndex >= grades.length) selectedGradeIndex = 0;
   return grades[selectedGradeIndex] || grades[0];
 };
 
 const fillGradeFields = (form, data, gradeIndex) => {
-  const grade = ((data && data.grades) || [])[gradeIndex] || { terms: [], columns: DEFAULT_COLUMNS.slice() };
-  const cols = normalizeColumns(grade.columns);
-  cols.forEach((name, i) => {
-    const field = form.elements[`col${i + 1}`];
-    if (field) field.value = name;
-  });
-  (grade.terms || []).forEach((term, i) => {
+  const cols = (data && data.columns) || ["", "", ""];
+  if (form.elements.col1) form.elements.col1.value = cols[0] || "";
+  if (form.elements.col2) form.elements.col2.value = cols[1] || "";
+  if (form.elements.col3) form.elements.col3.value = cols[2] || "";
+  const grade = ((data && data.grades) || [])[gradeIndex] || { terms: [] };
+  (data.timetable || []).forEach((item, i) => {
     const n = i + 1;
-    const block = form.querySelector(`[data-term-index="${i}"]`);
+    const term = (grade.terms || [])[i] || {};
+    const block = form.querySelector(`[data-term="${n}"]`);
     const rowCount = Number(block?.dataset.rows || 0);
-    if (form.elements[`time${n}Name`]) form.elements[`time${n}Name`].value = term.name || "";
+    if (form.elements[`time${n}Name`]) form.elements[`time${n}Name`].value = item.name || "";
     if (form.elements[`time${n}Period`]) form.elements[`time${n}Period`].value = term.period || "";
     for (let r = 1; r <= rowCount; r += 1) {
-      const row = (term.rows && term.rows[r - 1]) || [];
-      for (let c = 1; c <= cols.length; c += 1) {
+      const row = (term.rows && term.rows[r - 1]) || ["", "", ""];
+      for (let c = 1; c <= 3; c += 1) {
         const field = form.elements[`time${n}r${r}c${c}`];
         if (field) field.value = row[c - 1] || "";
       }
@@ -453,36 +414,43 @@ const fillGradeFields = (form, data, gradeIndex) => {
 
 const readVisibleGradeIntoData = (form, pageData, gradeIndex, keepEmpty = true) => {
   const next = deepCopy(pageData);
+  const termCount = (next.timetable || []).length;
+  next.timetable = Array.from({ length: termCount }, (_, i) => {
+    const n = i + 1;
+    const prev = next.timetable[i] || {};
+    return {
+      ...prev,
+      name: withFormText(form, `time${n}Name`, prev.name || "")
+    };
+  });
+  if (form.elements.col1) {
+    next.columns = [
+      withFormText(form, "col1", ""),
+      withFormText(form, "col2", ""),
+      withFormText(form, "col3", "")
+    ];
+  }
   (next.grades || []).forEach((grade, i) => {
     grade.name = withFormText(form, `gradeName${i}`, grade.name || "");
   });
   if (!next.grades || !next.grades[gradeIndex]) return next;
-  const colFields = [];
-  for (let c = 1; form.elements[`col${c}`]; c += 1) {
-    colFields.push(withFormText(form, `col${c}`, ""));
-  }
-  const columns = colFields.length ? colFields : normalizeColumns(next.grades[gradeIndex].columns);
-  const termBlocks = [...form.querySelectorAll("[data-term-index]")];
   next.grades[gradeIndex] = {
     ...next.grades[gradeIndex],
-    columns,
-    terms: termBlocks.map((block) => {
-      const i = Number(block.dataset.termIndex);
+    terms: next.timetable.map((_, i) => {
       const n = i + 1;
-      const rowCount = Number(block.dataset.rows || 0);
+      const block = form.querySelector(`[data-term="${n}"]`);
+      const rowCount = Number(block?.dataset.rows || 0);
       const rows = [];
       for (let r = 1; r <= rowCount; r += 1) {
-        const cells = columns.map((_, ci) => (form.elements[`time${n}r${r}c${ci + 1}`]?.value || "").trim());
+        const cells = [1, 2, 3].map((c) => (form.elements[`time${n}r${r}c${c}`]?.value || "").trim());
         if (keepEmpty || cells.some((cell) => cell)) rows.push(cells);
       }
       return {
-        name: withFormText(form, `time${n}Name`, ""),
         period: withFormText(form, `time${n}Period`, ""),
         rows
       };
     })
   };
-  next.columns = next.grades[0] ? next.grades[0].columns : columns;
   return next;
 };
 
@@ -490,38 +458,22 @@ const rebuildTimetableAdmin = (form) => {
   const wrap = form.querySelector("#timetableAdminFields");
   if (!wrap || !adminDraft) return;
   const grades = adminDraft.grades || [];
+  const timetable = adminDraft.timetable || [];
+  const grade = grades[adminGradeIndex] || { terms: [] };
   if (adminGradeIndex >= grades.length) adminGradeIndex = 0;
-  const grade = grades[adminGradeIndex] || { name: "", columns: DEFAULT_COLUMNS.slice(), terms: [emptyTerm("1학기")] };
-  const columns = normalizeColumns(grade.columns);
-  const terms = Array.isArray(grade.terms) && grade.terms.length ? grade.terms : [emptyTerm("1학기")];
   const columnFields = `
-    <p class="time-row-label">이 학년 열 이름</p>
-    <div class="admin-col-list" data-col-count="${columns.length}">
-      ${columns.map((name, i) => `
-        <div class="admin-col-item">
-          <div class="field">
-            <label>${i + 1}열 이름</label>
-            <input name="col${i + 1}" placeholder="${escapeHtml(DEFAULT_COLUMNS[i] || `${i + 1}열`)}" />
-          </div>
-          <button type="button" class="admin-mini-btn" data-remove-col="${i}" ${columns.length <= 1 ? "disabled" : ""}>열 삭제</button>
-        </div>
-      `).join("")}
-    </div>
-    <div class="admin-inline-actions">
-      <button type="button" class="admin-mini-btn" data-add-col>열 추가</button>
+    <div class="time-row-fields">
+      <div class="field"><label>1열 이름</label><input name="col1" placeholder="요일" /></div>
+      <div class="field"><label>2열 이름</label><input name="col2" placeholder="시간" /></div>
+      <div class="field"><label>3열 이름</label><input name="col3" placeholder="수업" /></div>
     </div>
     <p class="time-row-label">학년</p>
     <div class="admin-grade-list" id="adminGradeTabs">
       ${grades.map((item, i) => `
-        <div class="admin-grade-item ${i === adminGradeIndex ? "is-active" : ""}" data-grade-row="${i}">
-          <button type="button" class="admin-drag" draggable="true" data-drag-grade="${i}" aria-label="학년 순서 바꾸기">↕</button>
+        <div class="admin-grade-item ${i === adminGradeIndex ? "is-active" : ""}">
           <button type="button" class="admin-grade-pick" data-admin-grade="${i}">선택</button>
           <input name="gradeName${i}" value="${escapeHtml(item.name || "")}" aria-label="학년 이름" />
-          <div class="admin-grade-tools">
-            <button type="button" class="admin-mini-btn" data-grade-up="${i}" ${i === 0 ? "disabled" : ""}>위</button>
-            <button type="button" class="admin-mini-btn" data-grade-down="${i}" ${i === grades.length - 1 ? "disabled" : ""}>아래</button>
-            <button type="button" class="admin-mini-btn" data-remove-grade="${i}" ${grades.length <= 1 ? "disabled" : ""}>삭제</button>
-          </div>
+          <button type="button" class="admin-mini-btn" data-remove-grade="${i}" ${grades.length <= 1 ? "disabled" : ""}>삭제</button>
         </div>
       `).join("")}
     </div>
@@ -529,8 +481,9 @@ const rebuildTimetableAdmin = (form) => {
       <button type="button" class="admin-mini-btn" data-add-grade>학년 추가</button>
     </div>
   `;
-  const blocks = terms.map((term, i) => {
+  const blocks = timetable.map((item, i) => {
     const n = i + 1;
+    const term = (grade.terms || [])[i] || emptyTerm();
     const rowCount = Math.max((term.rows || []).length, 1);
     const rows = Array.from({ length: rowCount }, (_, ri) => {
       const r = ri + 1;
@@ -540,27 +493,22 @@ const rebuildTimetableAdmin = (form) => {
             <p class="time-row-label">${r}줄</p>
             <button type="button" class="admin-mini-btn" data-remove-row="${i}:${ri}">이 줄 삭제</button>
           </div>
-          <div class="time-row-fields" style="grid-template-columns: repeat(${Math.max(columns.length, 1)}, minmax(0, 1fr));">
-            ${columns.map((colName, ci) => `
-              <div class="field"><label>${escapeHtml(colName || `${ci + 1}열`)}</label><input name="time${n}r${r}c${ci + 1}" /></div>
-            `).join("")}
+          <div class="time-row-fields">
+            <div class="field"><label>1열</label><input name="time${n}r${r}c1" /></div>
+            <div class="field"><label>2열</label><input name="time${n}r${r}c2" /></div>
+            <div class="field"><label>3열</label><input name="time${n}r${r}c3" /></div>
           </div>
         </div>
       `;
     }).join("");
     return `
-      <div class="time-block" data-term-index="${i}" data-rows="${rowCount}">
+      <div class="time-block" data-term="${n}" data-rows="${rowCount}">
         <div class="time-block-head">
-          <button type="button" class="admin-drag" draggable="true" data-drag-term="${i}" aria-label="학기 순서 바꾸기">↕</button>
           <h4>시간표 ${n}</h4>
-          <div class="admin-inline-actions">
-            <button type="button" class="admin-mini-btn" data-term-up="${i}" ${i === 0 ? "disabled" : ""}>위</button>
-            <button type="button" class="admin-mini-btn" data-term-down="${i}" ${i === terms.length - 1 ? "disabled" : ""}>아래</button>
-            <button type="button" class="admin-mini-btn" data-remove-term="${i}" ${terms.length <= 1 ? "disabled" : ""}>이 학기 삭제</button>
-          </div>
+          <button type="button" class="admin-mini-btn" data-remove-term="${i}" ${timetable.length <= 1 ? "disabled" : ""}>이 학기 삭제</button>
         </div>
         <div class="field"><label>왼쪽 목록 이름</label><input name="time${n}Name" placeholder="1학기" /></div>
-        <div class="field"><label>부제 <span class="hint">기간만 적으면 됩니다. 학년 이름은 넣지 않아도 됩니다.</span></label><input name="time${n}Period" placeholder="3월 – 6월" /></div>
+        <div class="field"><label>부제</label><input name="time${n}Period" placeholder="3월 – 6월" /></div>
         ${rows}
         <div class="admin-inline-actions">
           <button type="button" class="admin-mini-btn" data-add-row="${i}">줄 추가</button>
@@ -575,34 +523,26 @@ const rebuildTimetableAdmin = (form) => {
   fillGradeFields(form, adminDraft, adminGradeIndex);
 };
 
-const applyAdminChange = (form, mutator, focusSel) => {
+const applyAdminChange = (form, mutator) => {
   if (!adminDraft) return;
-  const box = adminScroller();
-  const top = box ? box.scrollTop : 0;
   adminDraft = readVisibleGradeIntoData(form, adminDraft, adminGradeIndex, true);
   mutator(adminDraft);
   rebuildTimetableAdmin(form);
-  if (box) box.scrollTop = top;
-  if (focusSel) {
-    const el = typeof focusSel === "function" ? focusSel(form) : form.querySelector(focusSel);
-    if (el && typeof el.scrollIntoView === "function") el.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }
 };
 
 const bindTimetableAdminEvents = (form) => {
   const wrap = form.querySelector("#timetableAdminFields");
   if (!wrap || wrap.dataset.bound === "1") return;
   wrap.dataset.bound = "1";
-  let dragState = null;
   wrap.addEventListener("focusin", (event) => {
     if (!adminDraft) return;
     const input = event.target.closest("input[name^='gradeName']");
     if (!input) return;
     const nextIndex = Number(String(input.name).replace("gradeName", ""));
     if (Number.isNaN(nextIndex) || nextIndex === adminGradeIndex) return;
-    applyAdminChange(form, () => {
-      adminGradeIndex = nextIndex;
-    });
+    adminDraft = readVisibleGradeIntoData(form, adminDraft, adminGradeIndex, true);
+    adminGradeIndex = nextIndex;
+    rebuildTimetableAdmin(form);
     form.elements[`gradeName${nextIndex}`]?.focus();
   });
   wrap.addEventListener("click", (event) => {
@@ -611,22 +551,21 @@ const bindTimetableAdminEvents = (form) => {
     if (pick) {
       const nextIndex = Number(pick.dataset.adminGrade);
       if (nextIndex === adminGradeIndex) return;
-      applyAdminChange(form, () => {
-        adminGradeIndex = nextIndex;
-      });
+      adminDraft = readVisibleGradeIntoData(form, adminDraft, adminGradeIndex, true);
+      adminGradeIndex = nextIndex;
+      rebuildTimetableAdmin(form);
       return;
     }
     if (event.target.closest("[data-add-grade]")) {
       applyAdminChange(form, (draft) => {
-        const current = (draft.grades || [])[adminGradeIndex] || {};
+        const count = (draft.timetable || []).length;
         draft.grades = draft.grades || [];
         draft.grades.push({
           name: `학년 ${draft.grades.length + 1}`,
-          columns: normalizeColumns(current.columns),
-          terms: [emptyTerm("1학기")]
+          terms: Array.from({ length: count }, () => emptyTerm())
         });
         adminGradeIndex = draft.grades.length - 1;
-      }, (root) => root.querySelector("[data-grade-row]:last-of-type"));
+      });
       return;
     }
     const removeGrade = event.target.closest("[data-remove-grade]");
@@ -640,168 +579,50 @@ const bindTimetableAdminEvents = (form) => {
       });
       return;
     }
-    const gradeUp = event.target.closest("[data-grade-up]");
-    if (gradeUp) {
-      const idx = Number(gradeUp.dataset.gradeUp);
-      applyAdminChange(form, (draft) => {
-        draft.grades = moveItem(draft.grades, idx, idx - 1);
-        if (adminGradeIndex === idx) adminGradeIndex = idx - 1;
-        else if (adminGradeIndex === idx - 1) adminGradeIndex = idx;
-      });
-      return;
-    }
-    const gradeDown = event.target.closest("[data-grade-down]");
-    if (gradeDown) {
-      const idx = Number(gradeDown.dataset.gradeDown);
-      applyAdminChange(form, (draft) => {
-        draft.grades = moveItem(draft.grades, idx, idx + 1);
-        if (adminGradeIndex === idx) adminGradeIndex = idx + 1;
-        else if (adminGradeIndex === idx + 1) adminGradeIndex = idx;
-      });
-      return;
-    }
     if (event.target.closest("[data-add-term]")) {
       applyAdminChange(form, (draft) => {
-        const g = (draft.grades || [])[adminGradeIndex];
-        if (!g) return;
-        g.terms = g.terms || [];
-        g.terms.push(emptyTerm("새 학기"));
-      }, (root) => root.querySelector(".time-block:last-of-type"));
+        draft.timetable = draft.timetable || [];
+        draft.timetable.push({ name: "새 학기", period: "", rows: [] });
+        (draft.grades || []).forEach((grade) => {
+          grade.terms = grade.terms || [];
+          grade.terms.push(emptyTerm());
+        });
+      });
       return;
     }
     const removeTerm = event.target.closest("[data-remove-term]");
     if (removeTerm) {
       applyAdminChange(form, (draft) => {
-        const g = (draft.grades || [])[adminGradeIndex];
-        if (!g || (g.terms || []).length <= 1) return;
-        g.terms.splice(Number(removeTerm.dataset.removeTerm), 1);
-      });
-      return;
-    }
-    const termUp = event.target.closest("[data-term-up]");
-    if (termUp) {
-      const idx = Number(termUp.dataset.termUp);
-      applyAdminChange(form, (draft) => {
-        const g = (draft.grades || [])[adminGradeIndex];
-        if (!g) return;
-        g.terms = moveItem(g.terms, idx, idx - 1);
-      });
-      return;
-    }
-    const termDown = event.target.closest("[data-term-down]");
-    if (termDown) {
-      const idx = Number(termDown.dataset.termDown);
-      applyAdminChange(form, (draft) => {
-        const g = (draft.grades || [])[adminGradeIndex];
-        if (!g) return;
-        g.terms = moveItem(g.terms, idx, idx + 1);
-      });
-      return;
-    }
-    if (event.target.closest("[data-add-col]")) {
-      applyAdminChange(form, (draft) => {
-        const g = (draft.grades || [])[adminGradeIndex];
-        if (!g) return;
-        g.columns = normalizeColumns(g.columns);
-        g.columns.push(`${g.columns.length + 1}열`);
-        (g.terms || []).forEach((term) => {
-          (term.rows || []).forEach((row) => row.push(""));
-        });
-      });
-      return;
-    }
-    const removeCol = event.target.closest("[data-remove-col]");
-    if (removeCol) {
-      applyAdminChange(form, (draft) => {
-        const g = (draft.grades || [])[adminGradeIndex];
-        if (!g) return;
-        g.columns = normalizeColumns(g.columns);
-        if (g.columns.length <= 1) return;
-        const idx = Number(removeCol.dataset.removeCol);
-        g.columns.splice(idx, 1);
-        (g.terms || []).forEach((term) => {
-          (term.rows || []).forEach((row) => row.splice(idx, 1));
+        if ((draft.timetable || []).length <= 1) return;
+        const idx = Number(removeTerm.dataset.removeTerm);
+        draft.timetable.splice(idx, 1);
+        (draft.grades || []).forEach((grade) => {
+          if (Array.isArray(grade.terms)) grade.terms.splice(idx, 1);
         });
       });
       return;
     }
     const addRow = event.target.closest("[data-add-row]");
     if (addRow) {
-      const idx = Number(addRow.dataset.addRow);
       applyAdminChange(form, (draft) => {
-        const g = (draft.grades || [])[adminGradeIndex];
-        if (!g) return;
-        g.terms = g.terms || [];
-        if (!g.terms[idx]) g.terms[idx] = emptyTerm("새 학기");
-        g.terms[idx].rows = g.terms[idx].rows || [];
-        g.terms[idx].rows.push(padRow([], normalizeColumns(g.columns).length));
-      }, `[data-term-index="${idx}"] .time-row-wrap:last-of-type`);
+        const idx = Number(addRow.dataset.addRow);
+        const grade = (draft.grades || [])[adminGradeIndex];
+        if (!grade) return;
+        grade.terms = grade.terms || [];
+        if (!grade.terms[idx]) grade.terms[idx] = emptyTerm();
+        grade.terms[idx].rows = grade.terms[idx].rows || [];
+        grade.terms[idx].rows.push(["", "", ""]);
+      });
       return;
     }
     const removeRow = event.target.closest("[data-remove-row]");
     if (!removeRow) return;
     applyAdminChange(form, (draft) => {
       const [ti, ri] = String(removeRow.dataset.removeRow || "").split(":").map(Number);
-      const g = (draft.grades || [])[adminGradeIndex];
-      const term = g && g.terms && g.terms[ti];
+      const grade = (draft.grades || [])[adminGradeIndex];
+      const term = grade && grade.terms && grade.terms[ti];
       if (!term || !Array.isArray(term.rows)) return;
       term.rows.splice(ri, 1);
-    });
-  });
-  wrap.addEventListener("dragstart", (event) => {
-    const handle = event.target.closest("[data-drag-grade], [data-drag-term]");
-    if (!handle) {
-      event.preventDefault();
-      return;
-    }
-    const type = handle.dataset.dragGrade != null ? "grade" : "term";
-    const index = Number(type === "grade" ? handle.dataset.dragGrade : handle.dataset.dragTerm);
-    dragState = { type, index };
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", `${type}:${index}`);
-    handle.closest(".admin-grade-item, .time-block")?.classList.add("is-dragging");
-  });
-  wrap.addEventListener("dragend", () => {
-    dragState = null;
-    wrap.querySelectorAll(".is-dragging, .is-dragover").forEach((el) => {
-      el.classList.remove("is-dragging", "is-dragover");
-    });
-  });
-  wrap.addEventListener("dragover", (event) => {
-    if (!dragState) return;
-    const target = event.target && event.target.closest ? event.target : event.target.parentElement;
-    const row = dragState.type === "grade"
-      ? target.closest("[data-grade-row]")
-      : target.closest("[data-term-index]");
-    if (!row) return;
-    event.preventDefault();
-    wrap.querySelectorAll(".is-dragover").forEach((el) => el.classList.remove("is-dragover"));
-    row.classList.add("is-dragover");
-  });
-  wrap.addEventListener("drop", (event) => {
-    event.preventDefault();
-    if (!dragState) return;
-    const target = event.target && event.target.closest ? event.target : event.target.parentElement;
-    const row = dragState.type === "grade"
-      ? target.closest("[data-grade-row]")
-      : target.closest("[data-term-index]");
-    wrap.querySelectorAll(".is-dragging, .is-dragover").forEach((el) => {
-      el.classList.remove("is-dragging", "is-dragover");
-    });
-    if (!row) return;
-    const from = dragState.index;
-    const to = Number(dragState.type === "grade" ? row.dataset.gradeRow : row.dataset.termIndex);
-    dragState = null;
-    if (Number.isNaN(to) || from === to) return;
-    applyAdminChange(form, (draft) => {
-      if (row.dataset.gradeRow != null) {
-        draft.grades = moveItem(draft.grades, from, to);
-        adminGradeIndex = to;
-        return;
-      }
-      const g = (draft.grades || [])[adminGradeIndex];
-      if (!g) return;
-      g.terms = moveItem(g.terms, from, to);
     });
   });
 };
@@ -826,54 +647,14 @@ const compactGradeRows = (data) => {
 };
 
 const readTimetableAdmin = (form, pageData) => {
+  const page = currentPage();
   const next = adminDraft ? deepCopy(adminDraft) : deepCopy(pageData);
-  const read = compactGradeRows(readVisibleGradeIntoData(form, next, adminGradeIndex, false));
-  const first = (read.grades || [])[0];
+  const read = compactGradeRows(normalizePage(readVisibleGradeIntoData(form, next, adminGradeIndex, false), page));
   return {
-    columns: (first && first.columns) || read.columns,
-    timetable: ((first && first.terms) || []).map((term) => ({
-      name: term.name || "",
-      period: term.period || "",
-      rows: []
-    })),
+    columns: read.columns,
+    timetable: read.timetable,
     grades: read.grades
   };
-};
-
-const PAGE_COPY_FIELDS = ["label", "englishLabel", "rangeLabel", "courseDesc", "timetableTitle", "noticeTitle", "moreLabel", "importantLabel"];
-
-// 홈에 이미 저장한 부서 이름·학년 범위가 있으면 설정 칸에 같이 보여 줍니다.
-const fillPageCopyAdmin = (form, data) => {
-  if (!form) return;
-  const home = (window.DaechiBest && window.DaechiBest.loadContent)
-    ? window.DaechiBest.loadContent()
-    : {};
-  const mapped = {
-    elementary: { label: "elemName", englishLabel: "elemEn", rangeLabel: "elemRange", courseDesc: "elemDesc" },
-    middle: { label: "middleName", englishLabel: "middleEn", rangeLabel: "middleRange", courseDesc: "middleDesc" },
-    high: { label: "highName", englishLabel: "highEn", rangeLabel: "highRange", courseDesc: "highDesc" }
-  }[currentPage()] || {};
-  const pick = (key) => {
-    const fromPage = data[key];
-    if (fromPage != null && String(fromPage).trim()) return fromPage;
-    const homeKey = mapped[key];
-    return (homeKey && home[homeKey]) || "";
-  };
-  if (form.elements.deptLabel) form.elements.deptLabel.value = pick("label");
-  PAGE_COPY_FIELDS.forEach((key) => {
-    if (key === "label") return;
-    if (form.elements[key]) form.elements[key].value = pick(key);
-  });
-};
-
-const readPageCopyAdmin = (form, pageData) => {
-  const next = { ...(pageData || {}) };
-  next.label = withFormText(form, "deptLabel", next.label || "");
-  PAGE_COPY_FIELDS.forEach((key) => {
-    if (key === "label") return;
-    next[key] = withFormText(form, key, next[key] || "");
-  });
-  return next;
 };
 
 const currentPage = () => document.body.dataset.page || "elementary";
@@ -922,11 +703,10 @@ const renderTimetable = (data) => {
   renderGradeTabs(data);
   const list = document.querySelector("#timetableList");
   if (!list) return;
-  const terms = (currentGrade(data).terms || []);
-  if (selectedTermIndex >= terms.length) selectedTermIndex = Math.max(0, terms.length - 1);
-  list.innerHTML = terms.map((item, index) => `
+  if (selectedTermIndex >= (data.timetable || []).length) selectedTermIndex = 0;
+  list.innerHTML = data.timetable.map((item, index) => `
     <li>
-      <button type="button" data-time="${index}">${escapeHtml(item.name || `학기 ${index + 1}`)}</button>
+      <button type="button" data-time="${index}">${escapeHtml(item.name)}</button>
     </li>
   `).join("");
 };
@@ -952,32 +732,29 @@ const renderNotices = (data) => {
 
 const openSchedule = (index, options = {}) => {
   const data = currentData();
-  const grade = currentGrade(data);
-  const terms = grade.terms || [];
-  const item = terms[index];
+  const item = data.timetable[index];
   const panel = document.querySelector("#schedulePanel");
   if (!item || !panel) return;
   selectedTermIndex = index;
-  const cols = tableColumns(data, grade);
-  const rows = item.rows || [];
-  const period = (item.period || "").trim();
-  const gradeName = (grade.name || "").trim();
-  const termName = (item.name || "").trim();
-  // 학년 이름·학기 이름과 같은 부제는 탭과 겹치므로 숨깁니다.
-  const subtitle = period && period !== gradeName && period !== termName ? period : "";
+  const grade = currentGrade(data);
+  const term = (grade.terms || [])[index] || {};
+  const cols = tableColumns(data);
+  const rows = term.rows || [];
+  const period = (term.period || "").trim();
+  const subtitle = period && period !== grade.name ? period : grade.name;
   const body = rows.length
     ? `<div class="schedule-table-wrap">
     <table class="schedule-table">
-      <thead><tr>${cols.map((col) => `<th>${escapeHtml(col)}</th>`).join("")}</tr></thead>
+      <thead><tr><th>${escapeHtml(cols[0])}</th><th>${escapeHtml(cols[1])}</th><th>${escapeHtml(cols[2])}</th></tr></thead>
       <tbody>${rows.map((row) => (
-        `<tr>${cols.map((_, ci) => `<td>${escapeHtml((row && row[ci]) || "")}</td>`).join("")}</tr>`
+        `<tr><td>${escapeHtml(row[0])}</td><td>${escapeHtml(row[1])}</td><td>${escapeHtml(row[2])}</td></tr>`
       )).join("")}</tbody>
     </table>
     </div>`
     : `<p class="schedule-empty">이 학년 시간표는 아직 등록되지 않았습니다.</p>`;
   panel.innerHTML = `
-    <h3>${escapeHtml(data.label)} ${escapeHtml(termName ? `${termName} ${data.timetableTitle || "시간표"}` : (data.timetableTitle || "시간표"))}</h3>
-    ${subtitle ? `<p>${escapeHtml(subtitle)}</p>` : ""}
+    <h3>${escapeHtml(data.label)} ${escapeHtml(item.name)} 시간표</h3>
+    <p>${escapeHtml(subtitle)}</p>
     ${body}
   `;
   panel.classList.add("is-open");
@@ -990,9 +767,7 @@ const openNotice = (index) => {
   const item = currentData().notices[index];
   const modal = document.querySelector("#noticeModal");
   if (!item || !modal) return;
-  modal.querySelector("[data-notice-kicker]").textContent = item.important
-    ? (currentData().importantLabel || "중요 공지")
-    : (currentData().noticeTitle || "공지사항");
+  modal.querySelector("[data-notice-kicker]").textContent = item.important ? "중요 공지" : "공지사항";
   modal.querySelector("[data-notice-title]").textContent = item.title;
   modal.querySelector("[data-notice-date]").textContent = item.date;
   modal.querySelector("[data-notice-body]").textContent = item.body || "";
@@ -1027,7 +802,7 @@ const initBoards = () => {
     const btn = event.target.closest("button[data-grade]");
     if (!btn) return;
     selectedGradeIndex = Number(btn.dataset.grade);
-    renderTimetable(currentData());
+    renderGradeTabs(currentData());
     const panel = document.querySelector("#schedulePanel");
     if (panel && panel.classList.contains("is-open")) {
       openSchedule(selectedTermIndex, { silent: true });
@@ -1254,7 +1029,6 @@ const fillCurriculumAdmin = () => {
   rebuildSlidesAdmin(form);
   rebuildNoticesAdmin(form);
   fillTimetableAdmin(form, adminDraft, { keepDraft: true });
-  fillPageCopyAdmin(form, adminDraft);
 };
 
 const saveCurriculumAdmin = () => {
@@ -1262,7 +1036,7 @@ const saveCurriculumAdmin = () => {
   if (!form) return true;
   const all = loadCurriculum();
   const page = currentPage();
-  const next = readPageCopyAdmin(form, deepCopy(all[page]));
+  const next = deepCopy(all[page]);
   next.slides = readSlidesFromForm(form);
   next.notices = readNoticesFromForm(form);
   Object.assign(next, readTimetableAdmin(form, next));
@@ -1282,7 +1056,6 @@ const resetCurriculumAdmin = () => {
   rebuildSlidesAdmin(form);
   rebuildNoticesAdmin(form);
   fillTimetableAdmin(form, adminDraft, { keepDraft: true });
-  fillPageCopyAdmin(form, adminDraft);
 };
 
 const renderCurriculumPage = () => {
@@ -1291,12 +1064,6 @@ const renderCurriculumPage = () => {
   const data = currentData();
   const dept = document.querySelector("[data-dept-label]");
   if (dept) dept.textContent = data.label;
-  document.querySelectorAll("[data-board]").forEach((el) => {
-    const key = el.dataset.board;
-    if (data[key] != null) el.textContent = data[key];
-  });
-  const hero = document.querySelector(".dept-hero");
-  if (hero) hero.setAttribute("aria-label", `${data.label || ""} 배너`.trim());
   renderSlides(data);
   renderTimetable(data);
   renderNotices(data);
