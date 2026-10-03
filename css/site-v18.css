@@ -10,7 +10,7 @@
       --gold: #c4a35a;
       --gold-soft: #e8d7a8;
       /* 커리큘럼 배너 버튼, 슬라이드 점, 하단 안내 띠 */
-      --dept-accent: #e3f988;
+      --dept-accent: #e5e4e2;
       --ink: #142033;
       --muted: #5b6b7c;
       --line: #e4e9f0;
@@ -1024,7 +1024,7 @@
     .slide-copy .btn-primary {
       background: var(--dept-accent);
       color: var(--navy-950);
-      box-shadow: 0 10px 24px rgba(180, 200, 60, 0.28);
+      box-shadow: 0 10px 24px rgba(160, 160, 156, 0.28);
     }
     .slide-copy h1 {
       font-size: clamp(30px, 4vw, 48px);
