@@ -937,6 +937,211 @@ const readSlidesFromForm = (form) => {
   return slides;
 };
 
+// 공지 본문은 글, 줄바꿈, 링크, 이미지만 남깁니다.
+const NOTICE_RICH = /<(p|br|a|img|div)\b/i;
+let noticeLinkRange = null;
+
+const isSafeNoticeImage = (src) => {
+  const value = String(src || "").trim();
+  if (/^data:image\/(png|jpeg|jpg|webp);base64,/i.test(value)) return value.length < 480000;
+  return /^https:\/\/\S+$/i.test(value);
+};
+
+const walkNoticeChildren = (node, parent, walk) => {
+  [...node.childNodes].forEach((child) => walk(child, parent));
+};
+
+const sanitizeNoticeHtml = (html) => {
+  const doc = new DOMParser().parseFromString(`<div>${html || ""}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return "";
+  const out = document.createElement("div");
+  const walk = (node, parent) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      parent.appendChild(document.createTextNode(node.textContent || ""));
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const tag = node.tagName;
+    if (tag === "BR") {
+      parent.appendChild(document.createElement("br"));
+      return;
+    }
+    if (tag === "A") {
+      const href = (node.getAttribute("href") || "").trim();
+      if (!href || !isSafeBannerLink(href)) {
+        walkNoticeChildren(node, parent, walk);
+        return;
+      }
+      const anchor = document.createElement("a");
+      anchor.setAttribute("href", href);
+      if (/^https?:/i.test(href)) {
+        anchor.setAttribute("target", "_blank");
+        anchor.setAttribute("rel", "noopener noreferrer");
+      }
+      walkNoticeChildren(node, anchor, walk);
+      if (!anchor.textContent.trim() && !anchor.querySelector("img")) anchor.textContent = href;
+      parent.appendChild(anchor);
+      return;
+    }
+    if (tag === "IMG") {
+      const src = (node.getAttribute("src") || "").trim();
+      if (!isSafeNoticeImage(src)) return;
+      const img = document.createElement("img");
+      img.setAttribute("src", src);
+      img.setAttribute("alt", String(node.getAttribute("alt") || "공지 이미지").slice(0, 80));
+      parent.appendChild(img);
+      return;
+    }
+    if (tag === "P" || tag === "DIV") {
+      const block = document.createElement("p");
+      walkNoticeChildren(node, block, walk);
+      if (block.childNodes.length) parent.appendChild(block);
+      return;
+    }
+    walkNoticeChildren(node, parent, walk);
+  };
+  walkNoticeChildren(root, out, walk);
+  return out.innerHTML;
+};
+
+const plainNoticeToHtml = (text) => {
+  const escaped = escapeHtml(text);
+  const linked = escaped.replace(/https?:\/\/[^\s<]+/g, (url) => {
+    const clean = url.replace(/[),.\]]+$/, "");
+    const tail = url.slice(clean.length);
+    if (!isSafeBannerLink(clean)) return url;
+    return `<a href="${clean}" target="_blank" rel="noopener noreferrer">${clean}</a>${tail}`;
+  });
+  return linked.replace(/\n/g, "<br>");
+};
+
+const noticeBodyHtml = (body) => {
+  const raw = String(body || "");
+  if (!raw.trim()) return "";
+  if (NOTICE_RICH.test(raw)) return sanitizeNoticeHtml(raw);
+  return plainNoticeToHtml(raw);
+};
+
+const noticeEditorHtml = (form) => {
+  const editor = form.querySelector("[data-notice-editor]");
+  if (!editor) return "";
+  const html = sanitizeNoticeHtml(editor.innerHTML);
+  const probe = document.createElement("div");
+  probe.innerHTML = html;
+  if (!probe.textContent.trim() && !probe.querySelector("img")) return "";
+  return html;
+};
+
+const toastNotice = (message) => {
+  if (window.DaechiBest && typeof window.DaechiBest.showToast === "function") {
+    window.DaechiBest.showToast(message, 4200);
+  }
+};
+
+const compressNoticeImage = (file) => new Promise((resolve, reject) => {
+  if (!file || !String(file.type || "").startsWith("image/")) {
+    reject(new Error("이미지 파일만 넣을 수 있습니다."));
+    return;
+  }
+  const reader = new FileReader();
+  reader.onerror = () => reject(new Error("이미지를 읽지 못했습니다."));
+  reader.onload = () => {
+    const image = new Image();
+    image.onerror = () => reject(new Error("이미지를 읽지 못했습니다."));
+    image.onload = () => {
+      const max = 960;
+      const longest = Math.max(image.width, image.height) || 1;
+      const scale = Math.min(1, max / longest);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const data = canvas.toDataURL("image/jpeg", 0.72);
+      if (!isSafeNoticeImage(data)) {
+        reject(new Error("이미지가 너무 큽니다. 더 작은 사진을 넣어 주세요."));
+        return;
+      }
+      resolve(data);
+    };
+    image.src = String(reader.result || "");
+  };
+  reader.readAsDataURL(file);
+});
+
+const placeInNoticeEditor = (form, node) => {
+  const editor = form.querySelector("[data-notice-editor]");
+  if (!editor) return;
+  let range = null;
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount) {
+    const live = sel.getRangeAt(0);
+    if (editor.contains(live.commonAncestorContainer)) range = live;
+  }
+  if (!range && noticeLinkRange && editor.contains(noticeLinkRange.commonAncestorContainer)) {
+    range = noticeLinkRange;
+  }
+  if (range) {
+    range.deleteContents();
+    range.insertNode(node);
+  } else {
+    editor.appendChild(node);
+  }
+  noticeLinkRange = null;
+  editor.innerHTML = sanitizeNoticeHtml(editor.innerHTML);
+  editor.dispatchEvent(new Event("input", { bubbles: true }));
+};
+
+const applyNoticeLink = (form) => {
+  const url = (form.querySelector("[data-notice-link-url]")?.value || "").trim();
+  const label = (form.querySelector("[data-notice-link-text]")?.value || "").trim();
+  if (!url || !isSafeBannerLink(url)) {
+    toastNotice("http 주소, 전화, 학원 페이지 주소만 넣을 수 있습니다.");
+    return;
+  }
+  const anchor = document.createElement("a");
+  anchor.setAttribute("href", url);
+  if (/^https?:/i.test(url)) {
+    anchor.setAttribute("target", "_blank");
+    anchor.setAttribute("rel", "noopener noreferrer");
+  }
+  const selected = noticeLinkRange ? noticeLinkRange.toString() : "";
+  anchor.textContent = label || selected || url;
+  placeInNoticeEditor(form, anchor);
+  const row = form.querySelector("[data-notice-link-row]");
+  if (row) row.hidden = true;
+  const urlInput = form.querySelector("[data-notice-link-url]");
+  const textInput = form.querySelector("[data-notice-link-text]");
+  if (urlInput) urlInput.value = "";
+  if (textInput) textInput.value = "";
+};
+
+const addNoticeImageFile = async (form, file) => {
+  try {
+    const src = await compressNoticeImage(file);
+    const img = document.createElement("img");
+    img.setAttribute("src", src);
+    img.setAttribute("alt", "공지 이미지");
+    placeInNoticeEditor(form, img);
+  } catch (error) {
+    toastNotice(error.message || "이미지를 넣지 못했습니다.");
+  }
+};
+
+const insertNoticePlainText = (form, text) => {
+  const editor = form.querySelector("[data-notice-editor]");
+  if (!editor || !text) return;
+  const holder = document.createElement("span");
+  String(text).split("\n").forEach((line, index) => {
+    if (index) holder.appendChild(document.createElement("br"));
+    holder.appendChild(document.createTextNode(line));
+  });
+  placeInNoticeEditor(form, holder);
+};
+
 const readNoticesFromForm = (form) => {
   const notices = deepCopy((adminDraft && adminDraft.notices) || []);
   const block = form.querySelector("[data-notice-block]");
@@ -947,7 +1152,7 @@ const readNoticesFromForm = (form) => {
     id: previous.id || newNoticeId(),
     title: withFormText(form, "noticeTitle", ""),
     date: withFormText(form, "noticeDate", ""),
-    body: withFormText(form, "noticeBody", ""),
+    body: noticeEditorHtml(form),
     important: !!form.elements.noticeImportant?.checked
   };
   return notices;
@@ -1012,12 +1217,26 @@ const rebuildNoticesAdmin = (form) => {
       </div>
       <div class="field"><label>제목</label><input name="noticeTitle" /></div>
       <div class="field"><label>날짜</label><input name="noticeDate" /></div>
-      <div class="field"><label>본문</label><textarea name="noticeBody"></textarea></div>
+      <div class="field">
+        <label>본문 <span class="hint">링크를 넣거나 이미지를 붙여넣을 수 있습니다.</span></label>
+        <div class="notice-editor-tools">
+          <button type="button" class="admin-mini-btn" data-notice-link>링크</button>
+          <button type="button" class="admin-mini-btn" data-notice-image>이미지</button>
+          <input type="file" accept="image/png,image/jpeg,image/webp" data-notice-image-file hidden />
+        </div>
+        <div class="notice-link-row" data-notice-link-row hidden>
+          <input data-notice-link-url placeholder="https:// 주소" />
+          <input data-notice-link-text placeholder="표시할 글자 (선택)" />
+          <button type="button" class="admin-mini-btn" data-notice-link-ok>넣기</button>
+        </div>
+        <div class="notice-editor" data-notice-editor contenteditable="true" role="textbox" aria-multiline="true"></div>
+      </div>
       <label class="field-check"><input type="checkbox" name="noticeImportant" /> 중요 표시</label>
     </div>`;
   if (form.elements.noticeTitle) form.elements.noticeTitle.value = notice.title || "";
   if (form.elements.noticeDate) form.elements.noticeDate.value = notice.date || "";
-  if (form.elements.noticeBody) form.elements.noticeBody.value = notice.body || "";
+  const editor = form.querySelector("[data-notice-editor]");
+  if (editor) editor.innerHTML = noticeBodyHtml(notice.body || "");
   if (form.elements.noticeImportant) form.elements.noticeImportant.checked = !!notice.important;
 };
 
@@ -1106,6 +1325,22 @@ const bindSlideNoticeAdmin = (form) => {
         rebuildNoticesAdmin(form);
         return;
       }
+      if (event.target.closest("[data-notice-link]")) {
+        const row = noticesWrap.querySelector("[data-notice-link-row]");
+        if (row) row.hidden = false;
+        const urlInput = noticesWrap.querySelector("[data-notice-link-url]");
+        if (urlInput) urlInput.focus();
+        return;
+      }
+      if (event.target.closest("[data-notice-image]")) {
+        const file = noticesWrap.querySelector("[data-notice-image-file]");
+        if (file) file.click();
+        return;
+      }
+      if (event.target.closest("[data-notice-link-ok]")) {
+        applyNoticeLink(form);
+        return;
+      }
       const up = event.target.closest("[data-notice-up]");
       if (up) {
         const i = Number(up.dataset.noticeUp);
@@ -1123,6 +1358,54 @@ const bindSlideNoticeAdmin = (form) => {
     } finally {
       syncCurriculumTouch();
     }
+    });
+    noticesWrap.addEventListener("mousedown", (event) => {
+      if (!event.target.closest("[data-notice-link], [data-notice-image]")) return;
+      const editor = noticesWrap.querySelector("[data-notice-editor]");
+      const sel = window.getSelection();
+      if (editor && sel && sel.rangeCount && editor.contains(sel.anchorNode)) {
+        noticeLinkRange = sel.getRangeAt(0).cloneRange();
+      } else {
+        noticeLinkRange = null;
+      }
+    });
+    noticesWrap.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      if (!event.target.closest("[data-notice-link-url], [data-notice-link-text]")) return;
+      event.preventDefault();
+      applyNoticeLink(form);
+    });
+    noticesWrap.addEventListener("paste", (event) => {
+      const editor = event.target.closest("[data-notice-editor]");
+      if (!editor) return;
+      const items = event.clipboardData ? [...event.clipboardData.items] : [];
+      const imageItem = items.find((item) => item.type && item.type.startsWith("image/"));
+      if (imageItem) {
+        event.preventDefault();
+        const file = imageItem.getAsFile();
+        if (file) addNoticeImageFile(form, file);
+        return;
+      }
+      event.preventDefault();
+      insertNoticePlainText(form, event.clipboardData ? event.clipboardData.getData("text/plain") : "");
+    });
+    noticesWrap.addEventListener("dragover", (event) => {
+      if (event.target.closest("[data-notice-editor]")) event.preventDefault();
+    });
+    noticesWrap.addEventListener("drop", (event) => {
+      const editor = event.target.closest("[data-notice-editor]");
+      if (!editor || !event.dataTransfer) return;
+      const file = event.dataTransfer.files && event.dataTransfer.files[0];
+      if (!file || !String(file.type || "").startsWith("image/")) return;
+      event.preventDefault();
+      addNoticeImageFile(form, file);
+    });
+    noticesWrap.addEventListener("change", (event) => {
+      const input = event.target.closest("[data-notice-image-file]");
+      if (!input || !input.files || !input.files[0]) return;
+      const file = input.files[0];
+      input.value = "";
+      addNoticeImageFile(form, file);
     });
   }
 };
@@ -1410,7 +1693,7 @@ const renderNoticePage = () => {
   if (kicker) kicker.textContent = item.important ? "중요 공지" : "공지사항";
   if (titleEl) titleEl.textContent = item.title;
   if (dateEl) dateEl.textContent = item.date || "";
-  if (bodyEl) bodyEl.textContent = item.body || "";
+  if (bodyEl) bodyEl.innerHTML = noticeBodyHtml(item.body || "");
   document.title = `${item.title} | ${labels[dept] || "공지"} | 대치베스트 어학원`;
 };
 
