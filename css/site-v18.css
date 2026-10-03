@@ -9,8 +9,8 @@
       --blue-500: #3b82f6;
       --gold: #c4a35a;
       --gold-soft: #e8d7a8;
-      /* 커리큘럼 배너 강조색. 남색 배경과 맞는 연한 파랑입니다. */
-      --dept-accent: #7eb6ea;
+      /* 커리큘럼 배너 버튼, 슬라이드 점, 하단 안내 띠 */
+      --dept-accent: #99ff00;
       --ink: #142033;
       --muted: #5b6b7c;
       --line: #e4e9f0;
@@ -1020,11 +1020,11 @@
       justify-content: center;
     }
     .slide-copy .eyebrow { color: #d5e6f8; }
-    .slide-copy .eyebrow::before { background: var(--dept-accent); }
+    .slide-copy .eyebrow::before { background: #7eb6ea; }
     .slide-copy .btn-primary {
       background: var(--dept-accent);
       color: var(--navy-950);
-      box-shadow: 0 10px 24px rgba(80, 140, 200, 0.28);
+      box-shadow: 0 10px 24px rgba(120, 190, 0, 0.28);
     }
     .slide-copy h1 {
       font-size: clamp(30px, 4vw, 48px);
