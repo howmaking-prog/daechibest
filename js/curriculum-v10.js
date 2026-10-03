@@ -231,13 +231,11 @@ const GRADE_NAMES = {
 };
 
 let selectedGradeIndex = 0;
-let selectedTermIndex = 0;
 let adminGradeIndex = 0;
 let adminTermIndex = 0;
 let adminSlideIndex = 0;
 let adminNoticeIndex = 0;
 let adminDraft = null;
-let scheduleShowsAll = false;
 
 const emptyTerm = () => ({ name: "새 학기", period: "", rows: [] });
 const fallbackColumns = ["요일", "시간", "수업"];
@@ -730,22 +728,24 @@ const renderGradeTabs = (data) => {
   )).join("");
 };
 
+const scheduleHref = (gradeIndex, termIndex) => {
+  const params = new URLSearchParams();
+  params.set("dept", currentPage());
+  params.set("g", String(gradeIndex));
+  params.set("t", String(termIndex));
+  return `schedule.html#${params.toString()}`;
+};
+
 const renderTimetable = (data) => {
   renderGradeTabs(data);
   const list = document.querySelector("#timetableList");
   if (!list) return;
   const terms = (currentGrade(data).terms) || [];
-  if (selectedTermIndex >= terms.length) selectedTermIndex = 0;
   list.innerHTML = terms.map((item, index) => `
     <li>
-      <button type="button" data-time="${index}" class="${!scheduleShowsAll && index === selectedTermIndex ? "is-active" : ""}">${escapeHtml(item.name)}</button>
+      <a href="${scheduleHref(selectedGradeIndex, index)}">${escapeHtml(item.name || `시간표 ${index + 1}`)}</a>
     </li>
   `).join("");
-  const more = document.querySelector("#timeMore");
-  if (more) {
-    more.textContent = scheduleShowsAll ? "접기" : "더보기 >";
-    more.classList.toggle("is-active", scheduleShowsAll);
-  }
 };
 
 // 중요 공지를 맨 위에 두고, 같은 구분 안에서는 최신 날짜가 먼저 오게 합니다.
@@ -807,61 +807,6 @@ const termSubtitle = (term, gradeName) => {
   return period && period !== gradeName ? period : gradeName;
 };
 
-const markScheduleList = () => {
-  document.querySelectorAll("#timetableList button[data-time]").forEach((btn) => {
-    const on = !scheduleShowsAll && Number(btn.dataset.time) === selectedTermIndex;
-    btn.classList.toggle("is-active", on);
-  });
-  const more = document.querySelector("#timeMore");
-  if (more) {
-    more.textContent = scheduleShowsAll ? "접기" : "더보기 >";
-    more.classList.toggle("is-active", scheduleShowsAll);
-  }
-};
-
-const openSchedule = (index, options = {}) => {
-  const data = currentData();
-  const panel = document.querySelector("#schedulePanel");
-  const grade = currentGrade(data);
-  const terms = grade.terms || [];
-  if (!panel || !terms.length) return;
-  scheduleShowsAll = false;
-  selectedTermIndex = Math.min(Math.max(Number(index) || 0, 0), terms.length - 1);
-  const term = terms[selectedTermIndex] || {};
-  const cols = tableColumns({ columns: grade.columns || data.columns });
-  panel.innerHTML = `
-    <section class="schedule-block">
-      <h3>${escapeHtml(data.label)} ${escapeHtml(term.name || "")} 시간표</h3>
-      <p>${escapeHtml(termSubtitle(term, grade.name))}</p>
-      ${scheduleTableHtml(term.rows || [], cols)}
-    </section>
-  `;
-  panel.classList.add("is-open");
-  markScheduleList();
-  if (!options.silent) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-};
-
-// 더보기는 첫 학기만 열지 않고, 선택한 학년의 학기 시간표를 모두 보여 줍니다.
-const openAllSchedules = (options = {}) => {
-  const data = currentData();
-  const panel = document.querySelector("#schedulePanel");
-  const grade = currentGrade(data);
-  const terms = grade.terms || [];
-  if (!panel) return;
-  scheduleShowsAll = true;
-  const cols = tableColumns({ columns: grade.columns || data.columns });
-  panel.innerHTML = terms.map((term) => `
-    <section class="schedule-block">
-      <h3>${escapeHtml(data.label)} ${escapeHtml(term.name || "")} 시간표</h3>
-      <p>${escapeHtml(termSubtitle(term, grade.name))}</p>
-      ${scheduleTableHtml(term.rows || [], cols)}
-    </section>
-  `).join("") || `<p class="schedule-empty">등록된 시간표가 없습니다.</p>`;
-  panel.classList.add("is-open");
-  markScheduleList();
-  if (!options.silent) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-};
-
 const initSlider = () => {
   if (!document.querySelector("#slider")) return;
   const slides = () => [...document.querySelectorAll(".slide")];
@@ -891,22 +836,7 @@ const initBoards = () => {
     const btn = event.target.closest("button[data-grade]");
     if (!btn) return;
     selectedGradeIndex = Number(btn.dataset.grade);
-    const data = currentData();
-    const terms = (currentGrade(data).terms) || [];
-    if (selectedTermIndex >= terms.length) selectedTermIndex = 0;
-    renderTimetable(data);
-    if (scheduleShowsAll) openAllSchedules({ silent: true });
-    else openSchedule(selectedTermIndex, { silent: true });
-  });
-  document.querySelector("#timetableList")?.addEventListener("click", (event) => {
-    const btn = event.target.closest("button[data-time]");
-    if (!btn) return;
-    openSchedule(Number(btn.dataset.time));
-  });
-  document.querySelector("#timeMore")?.addEventListener("click", (event) => {
-    event.preventDefault();
-    if (scheduleShowsAll) openSchedule(selectedTermIndex);
-    else openAllSchedules();
+    renderTimetable(currentData());
   });
 };
 
@@ -1714,13 +1644,74 @@ const renderNoticePage = () => {
   document.title = `${item.title} | ${labels[dept] || "공지"} | 대치베스트 어학원`;
 };
 
+// 학년·반 메뉴를 누르면 그 시간표만 있는 페이지를 채웁니다.
+const renderSchedulePage = () => {
+  const root = document.querySelector(".schedule-page");
+  if (!root) return;
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const searchParams = new URLSearchParams(window.location.search);
+  const dept = hashParams.get("dept") || searchParams.get("dept");
+  const rawGrade = hashParams.has("g") ? hashParams.get("g") : searchParams.get("g");
+  const rawTerm = hashParams.has("t") ? hashParams.get("t") : searchParams.get("t");
+  const gradeIndex = rawGrade == null ? NaN : Number(rawGrade);
+  const termIndex = rawTerm == null ? NaN : Number(rawTerm);
+  const labels = { elementary: "초등부", middle: "중등부", high: "고등부" };
+  const file = DEPT_FILES[dept] || "index.html";
+  const back = document.querySelector("#scheduleBack");
+  const deptLabel = document.querySelector("[data-dept-label]");
+  if (deptLabel) deptLabel.textContent = labels[dept] || "시간표";
+  document.querySelectorAll(".sub-nav a").forEach((link) => {
+    link.classList.toggle("is-active", link.getAttribute("href") === file);
+  });
+  const parent = document.querySelector(".has-sub > a");
+  if (parent && DEPT_FILES[dept]) {
+    parent.setAttribute("href", file);
+    parent.classList.add("is-active");
+  }
+  const page = DEPT_FILES[dept] ? loadCurriculum()[dept] : null;
+  const grades = page && Array.isArray(page.grades) ? page.grades : [];
+  const grade = Number.isInteger(gradeIndex) && gradeIndex >= 0 ? grades[gradeIndex] : null;
+  const term = grade && Number.isInteger(termIndex) && termIndex >= 0 ? (grade.terms || [])[termIndex] : null;
+  const titleEl = document.querySelector("#scheduleTitle");
+  const kicker = document.querySelector("#scheduleKicker");
+  const periodEl = document.querySelector("#schedulePeriod");
+  const bodyEl = document.querySelector("#scheduleBody");
+  const backHref = `${file}#g=${Number.isInteger(gradeIndex) && gradeIndex >= 0 ? gradeIndex : 0}`;
+  if (back) back.setAttribute("href", backHref);
+  if (!grade || !term) {
+    if (kicker) kicker.textContent = "시간표";
+    if (titleEl) titleEl.textContent = "시간표를 찾을 수 없습니다";
+    if (periodEl) periodEl.textContent = "";
+    if (bodyEl) bodyEl.textContent = "삭제되었거나 주소가 올바르지 않습니다.";
+    document.title = "시간표 | 대치베스트 어학원";
+    return;
+  }
+  const title = `${grade.name || ""} ${term.name || ""} 시간표`.replace(/\s+/g, " ").trim();
+  const period = termSubtitle(term, grade.name);
+  if (kicker) kicker.textContent = labels[dept] ? `${labels[dept]} 시간표` : "시간표";
+  if (titleEl) titleEl.textContent = title;
+  if (periodEl) periodEl.textContent = period && period !== grade.name ? period : "";
+  if (bodyEl) {
+    const cols = tableColumns({ columns: grade.columns || page.columns });
+    bodyEl.innerHTML = scheduleTableHtml(term.rows || [], cols);
+  }
+  document.title = `${title} | ${labels[dept] || "시간표"} | 대치베스트 어학원`;
+};
+
 const renderCurriculumPage = () => {
-  if ((document.body.dataset.page || "") === "notice") {
+  const pageName = (document.body.dataset.page || "");
+  if (pageName === "notice") {
     renderNoticePage();
     return;
   }
-  if ((document.body.dataset.page || "") === "home") return;
+  if (pageName === "schedule") {
+    renderSchedulePage();
+    return;
+  }
+  if (pageName === "home") return;
   const grades = currentData().grades || [];
+  const hashGrade = Number(new URLSearchParams(window.location.hash.replace(/^#/, "")).get("g"));
+  if (Number.isInteger(hashGrade) && hashGrade >= 0 && hashGrade < grades.length) selectedGradeIndex = hashGrade;
   if (selectedGradeIndex >= grades.length) selectedGradeIndex = 0;
   const data = currentData();
   const dept = document.querySelector("[data-dept-label]");
@@ -1728,8 +1719,6 @@ const renderCurriculumPage = () => {
   renderSlides(data);
   renderTimetable(data);
   renderNotices(data);
-  if (scheduleShowsAll) openAllSchedules({ silent: true });
-  else if (((currentGrade(data).terms) || []).length) openSchedule(selectedTermIndex, { silent: true });
 
   const file = DEPT_FILES[currentPage()];
   document.querySelectorAll(".sub-nav a").forEach((link) => {

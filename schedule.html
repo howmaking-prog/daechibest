@@ -21,52 +21,30 @@
       }
     })();
   </script>
-  <title>초등부 | 대치베스트 어학원</title>
-  <meta name="description" content="대치베스트 어학원 초등부 커리큘럼, 시간표, 공지사항" />
+  <title>시간표 | 대치베스트 어학원</title>
+  <meta name="description" content="대치베스트 어학원 시간표" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/site-v18.css?v=60" />
 </head>
-<body data-page="elementary">
+<body data-page="schedule">
   <script src="js/chrome.js?v=60"></script>
   <script>document.write(DaechiChrome.header());</script>
 
-  <main>
-    <section class="dept-hero" aria-label="초등부 배너">
-      <div class="slider" id="slider"></div>
-      <button class="slider-btn prev" id="sliderPrev" type="button" aria-label="이전 배너">‹</button>
-      <button class="slider-btn next" id="sliderNext" type="button" aria-label="다음 배너">›</button>
-      <div class="slider-dots" id="sliderDots"></div>
-    </section>
-
-    <section class="dept-board" id="board">
-      <div class="dept-board-inner">
-        <div class="board-grid">
-          <article class="timetable-col">
-            <div class="board-head">
-              <h2>시간표</h2>
-            </div>
-            <div class="grade-tabs" id="gradeTabs"></div>
-            <ul class="board-list" id="timetableList"></ul>
-          </article>
-          <article class="notice-col">
-            <div class="board-head">
-              <h2>공지사항</h2>
-            </div>
-            <ul class="board-list" id="noticeList"></ul>
-          </article>
-        </div>
-      </div>
-    </section>
+  <main class="notice-page schedule-page">
+    <article class="notice-article schedule-article">
+      <a class="notice-back" id="scheduleBack" href="middle.html#board">목록으로</a>
+      <p class="section-kicker" id="scheduleKicker">시간표</p>
+      <h1 id="scheduleTitle">시간표를 불러오는 중입니다</h1>
+      <p class="notice-page-date" id="schedulePeriod"></p>
+      <div id="scheduleBody"></div>
+    </article>
   </main>
 
-  <script>document.write(DaechiChrome.footer(true));</script>
+  <script>document.write(DaechiChrome.footer(false));</script>
 
-  <script>document.write(DaechiChrome.deptAdmin());</script>
-
-  <div class="toast" id="toast">저장되었습니다.</div>
   <script src="js/app-v8.js?v=60"></script>
   <script src="js/curriculum-v10.js?v=60"></script>
 </body>

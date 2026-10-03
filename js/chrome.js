@@ -4,19 +4,25 @@ const deptNames = {
   elementary: "초등부",
   middle: "중등부",
   high: "고등부",
-  notice: "공지"
+  notice: "공지",
+  schedule: "시간표"
 };
 
-const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "59"}`;
+const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "60"}`;
 
 const header = () => {
   const page = document.body.dataset.page || "home";
   const home = page === "home";
-  const dept = deptNames[page] ? `<span class="brand-dept" data-dept-label>${deptNames[page]}</span>` : "";
+  const hashDept = new URLSearchParams((window.location.hash || "").replace(/^#/, "")).get("dept") || "";
+  const brandKey = page === "schedule" && deptNames[hashDept] ? hashDept : page;
+  const dept = deptNames[brandKey] && brandKey !== "home" ? `<span class="brand-dept" data-dept-label>${deptNames[brandKey]}</span>` : "";
   const homeHref = home ? "#home" : "index.html";
   const sectionHref = (id) => (home ? `#${id}` : `index.html#${id}`);
-  const curriculumOn = page === "elementary" || page === "middle" || page === "high";
-  const sub = (name, label) => `<li><a${page === name ? ' class="is-active"' : ""} href="${name}.html">${label}</a></li>`;
+  const onDept = page === "elementary" || page === "middle" || page === "high";
+  const scheduleDept = page === "schedule" && (hashDept === "elementary" || hashDept === "middle" || hashDept === "high");
+  const curriculumOn = onDept || scheduleDept;
+  const curriculumHref = scheduleDept ? `${hashDept}.html` : (onDept ? `${page}.html` : "elementary.html");
+  const sub = (name, label) => `<li><a${page === name || (page === "schedule" && hashDept === name) ? ' class="is-active"' : ""} href="${name}.html">${label}</a></li>`;
   return `
   <header class="site-header">
     <div class="header-inner">
@@ -36,7 +42,7 @@ const header = () => {
           <li><a href="${sectionHref("about")}">학원소개</a></li>
           <li><a href="${sectionHref("features")}">특징</a></li>
           <li class="has-sub">
-            <a${curriculumOn ? ' class="is-active"' : ""} href="${curriculumOn ? `${page}.html` : "elementary.html"}">커리큘럼</a>
+            <a${curriculumOn ? ' class="is-active"' : ""} href="${curriculumHref}">커리큘럼</a>
             <ul class="sub-nav">
               ${sub("elementary", "초등부")}
               ${sub("middle", "중등부")}

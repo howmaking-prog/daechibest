@@ -1409,6 +1409,8 @@
       text-decoration: underline;
       word-break: break-all;
     }
+    .schedule-article .schedule-table-wrap { margin-top: 8px; }
+    .schedule-article .schedule-empty { margin-top: 8px; }
     .notice-page-body img {
       display: block;
       max-width: 100%;
