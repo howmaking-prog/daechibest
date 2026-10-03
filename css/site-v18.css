@@ -471,15 +471,19 @@
       color: rgba(255,255,255,0.45);
     }
     .footer-admin {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
       border: 0;
+      border-radius: 8px;
       background: transparent;
-      color: rgba(255,255,255,0.45);
-      font-size: 13px;
-      font-weight: 700;
+      color: rgba(255,255,255,0.55);
       cursor: pointer;
-      text-decoration: underline;
-      text-underline-offset: 3px;
     }
+    .footer-admin svg { width: 18px; height: 18px; display: block; }
     .footer-admin:hover { color: var(--gold-soft); }
 
     /* 관리자 비밀번호 확인 */
