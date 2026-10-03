@@ -9,6 +9,8 @@
       --blue-500: #3b82f6;
       --gold: #c4a35a;
       --gold-soft: #e8d7a8;
+      /* 커리큘럼 배너 강조색. 남색 배경과 맞는 연한 파랑입니다. */
+      --dept-accent: #7eb6ea;
       --ink: #142033;
       --muted: #5b6b7c;
       --line: #e4e9f0;
@@ -1017,7 +1019,13 @@
       flex-direction: column;
       justify-content: center;
     }
-    .slide-copy .eyebrow { margin-bottom: 14px; }
+    .slide-copy .eyebrow { color: #d5e6f8; }
+    .slide-copy .eyebrow::before { background: var(--dept-accent); }
+    .slide-copy .btn-primary {
+      background: var(--dept-accent);
+      color: var(--navy-950);
+      box-shadow: 0 10px 24px rgba(80, 140, 200, 0.28);
+    }
     .slide-copy h1 {
       font-size: clamp(30px, 4vw, 48px);
       line-height: 1.25;
@@ -1035,7 +1043,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(196, 163, 90, 0.95);
+      background: var(--dept-accent);
       color: var(--navy-950);
       font-size: 14px;
       font-weight: 800;
@@ -1075,7 +1083,7 @@
       background: rgba(255,255,255,0.35);
       cursor: pointer;
     }
-    .slider-dots button.is-active { background: var(--gold); width: 22px; border-radius: 999px; }
+    .slider-dots button.is-active { background: var(--dept-accent); width: 22px; border-radius: 999px; }
 
     /* 시간표 / 공지: 기본은 한 줄, 넓은 화면에서만 2단 */
     .dept-board {
@@ -1435,7 +1443,7 @@
         word-break: keep-all;
       }
       .slider-btn { display: none; }
-      /* 점 표시는 골드 안내 바 위에 올려 배너 하단이 한 줄로 끝나게 합니다. */
+      /* 점 표시는 안내 바 위에 올려 배너 하단이 한 줄로 끝나게 합니다. */
       .slider-dots {
         position: absolute;
         left: 50%;
