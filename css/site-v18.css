@@ -1324,8 +1324,8 @@
       font-size: 14px;
     }
     .schedule-table th {
-      background: var(--navy-900);
-      color: #fff;
+      background: #bebfc5;
+      color: var(--navy-900);
       font-weight: 700;
       text-align: center;
     }
