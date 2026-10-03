@@ -1320,7 +1320,7 @@
     .schedule-table td {
       padding: 12px 14px;
       border-bottom: 1px solid var(--line);
-      text-align: left;
+      text-align: center;
       font-size: 14px;
     }
     .schedule-table th {
