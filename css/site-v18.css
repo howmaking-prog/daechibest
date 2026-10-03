@@ -1,5 +1,5 @@
 :root {
-      --navy-950: #06101c;
+      --navy-950: #102438;
       --navy-900: #0b1c33;
       --navy-800: #122844;
       --navy-700: #1a3a5c;
@@ -25,7 +25,7 @@
     body {
       font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
       color: var(--ink);
-      background: #06101c;
+      background: var(--navy-950);
       line-height: 1.7;
     }
     img { max-width: 100%; display: block; }
@@ -42,7 +42,7 @@
       top: 0;
       z-index: 50;
       height: var(--header-h);
-      background: rgba(6, 16, 28, 0.94);
+      background: rgba(16, 36, 56, 0.94);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
@@ -305,7 +305,7 @@
         radial-gradient(760px 480px at 82% 4%, rgba(59, 130, 246, 0.22), transparent 62%),
         radial-gradient(620px 420px at 6% 40%, rgba(196, 163, 90, 0.08), transparent 58%),
         radial-gradient(860px 520px at 90% 72%, rgba(37, 99, 235, 0.12), transparent 66%),
-        linear-gradient(180deg, #06101c 0%, #0c223c 24%, #081526 58%, #06101c 100%);
+        linear-gradient(180deg, #102438 0%, #1a3a58 24%, #142c48 58%, #102438 100%);
     }
     .about,
     #features,
@@ -405,7 +405,7 @@
 
     /* 푸터: 왼쪽 학원명, 오른쪽 연락처, 아래 저작권 줄 */
     .site-footer {
-      background: #06101c;
+      background: var(--navy-950);
       color: rgba(255,255,255,0.78);
       padding: 40px 24px 20px;
       border-top: 1px solid rgba(255,255,255,0.08);
@@ -862,7 +862,7 @@
         top: var(--header-h);
         left: 0;
         right: 0;
-        background: #06101c;
+        background: var(--navy-950);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         display: none;
         flex-direction: column;
@@ -1080,7 +1080,7 @@
     /* 시간표 / 공지: 기본은 한 줄, 넓은 화면에서만 2단 */
     .dept-board {
       padding: 56px 24px 96px;
-      background: #06101c;
+      background: var(--navy-950);
     }
     .dept-board-inner { max-width: var(--max); margin: 0 auto; }
     .board-grid {
