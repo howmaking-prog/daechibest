@@ -1129,7 +1129,8 @@
     .board-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 36px;
+      /* 시간표와 공지가 붙어 보이지 않게 세로 간격을 둡니다. */
+      gap: 64px;
     }
     @media (min-width: 961px) {
       .board-grid {
@@ -1271,7 +1272,9 @@
       font-size: 14px;
     }
     .board-list { list-style: none; }
-    .board-list li { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+    .board-list li { border-bottom: 0; }
+    .board-list li:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+    .notice-col .board-list a { padding-top: 14px; padding-bottom: 14px; }
     .board-list button,
     .board-list a {
       width: 100%;
@@ -1529,6 +1532,7 @@
         padding: 16px 0;
         font-size: 16px;
       }
+      .notice-col .board-list a { padding-top: 12px; padding-bottom: 12px; }
 
       /* 공지: 뱃지+제목 / 날짜는 아래 오른쪽 — 함영원 모바일과 같은 구조 */
       .notice-item {
