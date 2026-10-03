@@ -748,10 +748,27 @@ const renderTimetable = (data) => {
   }
 };
 
+// 중요 공지를 맨 위에 두고, 같은 구분 안에서는 최신 날짜가 먼저 오게 합니다.
+const noticeTime = (item) => {
+  const match = String(item && item.date || "").trim().match(/^(\d{4})[.\-](\d{2})[.\-](\d{2})$/);
+  if (!match) return 0;
+  return Number(match[1]) * 10000 + Number(match[2]) * 100 + Number(match[3]);
+};
+
+const sortedNotices = (notices) => (notices || [])
+  .map((item, index) => ({ item, index }))
+  .sort((a, b) => {
+    const importantGap = Number(!!b.item.important) - Number(!!a.item.important);
+    if (importantGap) return importantGap;
+    const dateGap = noticeTime(b.item) - noticeTime(a.item);
+    if (dateGap) return dateGap;
+    return a.index - b.index;
+  });
+
 const renderNotices = (data) => {
   const list = document.querySelector("#noticeList");
   if (!list) return;
-  list.innerHTML = data.notices.map((item, index) => {
+  list.innerHTML = sortedNotices(data.notices).map(({ item, index }) => {
     if (!(item.title || "").trim()) return "";
     const params = new URLSearchParams();
     params.set("dept", currentPage());
