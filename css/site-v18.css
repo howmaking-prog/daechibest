@@ -491,6 +491,15 @@
       font-size: 13px;
       color: rgba(255,255,255,0.45);
     }
+    /* PC에서는 저작권을 약관·등록정보와 한 줄로 둔다 */
+    @media (min-width: 961px) {
+      .footer-meta {
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+      }
+    }
     .legal-body h2 {
       margin: 28px 0 10px;
       font-size: 18px;

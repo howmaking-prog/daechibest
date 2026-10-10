@@ -8,7 +8,7 @@ const deptNames = {
   schedule: "시간표"
 };
 
-const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "62"}`;
+const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "63"}`;
 
 const header = () => {
   const page = document.body.dataset.page || "home";
@@ -89,8 +89,8 @@ const footer = (withAdmin) => `
           <p class="footer-legal">
             <a href="privacy.html">개인정보처리방침</a>
             <a href="terms.html">이용약관</a>
-            <span>대표: 강현경</span>
-            <span>사업자등록번호: 000-00-00000</span>
+            <span>대표: 강형경</span>
+            <span>사업자등록번호: 306-95-41453</span>
             <span>학원등록번호: 제14193호</span>
           </p>
           <p class="copyright">© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</p>
