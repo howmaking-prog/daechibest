@@ -1493,6 +1493,12 @@
     @media (max-width: 640px) {
       .notice-page { padding: 28px 16px 64px; }
       .notice-article { padding: 28px 20px 32px; }
+      /* 공지 본문만 좌우를 줄여, 좁은 화면에서 내용이 더 넓게 보이게 합니다. */
+      body[data-page="notice"] .notice-article { padding-left: 12px; padding-right: 12px; }
+      body[data-page="notice"] .notice-page-body.notice-html > :first-child {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
     }
     .field-check { display: flex; align-items: center; gap: 8px; font-size: 14px; }
     .time-col-label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; color: var(--muted); }
