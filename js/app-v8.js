@@ -6,7 +6,7 @@ const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_PASS_DEFAULT = "best1369";
 const ADMIN_SESSION_KEY = "daechibest_admin_session";
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
-const ASSET_VER = window.SITE_VER || "61";
+const ASSET_VER = window.SITE_VER || "62";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
 const REPO_RAW_URL = "https://raw.githubusercontent.com/howmaking-prog/daechibest/main/data/site.json";
@@ -362,9 +362,11 @@ const applyContent = (data) => {
 
   const page = document.body.dataset.page;
   const names = { elementary: "초등부", middle: "중등부", high: "고등부" };
-  document.title = page && names[page]
-    ? `${names[page]} | ${data.academyName}`
-    : (data.academyName || "대치베스트 어학원");
+  if (page !== "privacy" && page !== "terms") {
+    document.title = page && names[page]
+      ? `${names[page]} | ${data.academyName}`
+      : (data.academyName || "대치베스트 어학원");
+  }
 };
 
 const fillAdminForm = (data) => {

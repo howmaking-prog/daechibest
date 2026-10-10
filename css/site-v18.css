@@ -459,17 +459,54 @@
     .footer-contact a { color: inherit; }
     .footer-bar {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: space-between;
       gap: 12px 24px;
       padding-top: 16px;
       border-top: 1px solid rgba(255,255,255,0.1);
     }
+    .footer-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .footer-legal {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.55);
+    }
+    .footer-legal a {
+      color: rgba(255,255,255,0.82);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .footer-legal a:hover { color: #fff; }
     .copyright {
       margin: 0;
       font-size: 13px;
       color: rgba(255,255,255,0.45);
     }
+    .legal-body h2 {
+      margin: 28px 0 10px;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+      color: var(--navy-900);
+    }
+    .legal-body p,
+    .legal-body li {
+      margin: 0 0 10px;
+      font-size: 15px;
+      line-height: 1.85;
+      color: var(--ink);
+    }
+    .legal-body ol,
+    .legal-body ul { margin: 0 0 12px; padding-left: 1.25em; }
+    .legal-body a { color: var(--blue-600); text-decoration: underline; word-break: break-all; }
     .footer-admin {
       display: inline-flex;
       align-items: center;

@@ -8,7 +8,7 @@ const deptNames = {
   schedule: "시간표"
 };
 
-const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "61"}`;
+const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "62"}`;
 
 const header = () => {
   const page = document.body.dataset.page || "home";
@@ -85,7 +85,16 @@ const footer = (withAdmin) => `
         </dl>
       </div>
       <div class="footer-bar">
-        <p class="copyright">© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</p>
+        <div class="footer-meta">
+          <p class="footer-legal">
+            <a href="privacy.html">개인정보처리방침</a>
+            <a href="terms.html">이용약관</a>
+            <span>대표: 강현경</span>
+            <span>사업자등록번호: 000-00-00000</span>
+            <span>학원등록번호: 제14193호</span>
+          </p>
+          <p class="copyright">© <span id="year"></span> <span data-bind="academyName">대치베스트 어학원</span>. All rights reserved.</p>
+        </div>
         ${withAdmin ? '<button type="button" class="footer-admin" id="adminOpen" aria-label="관리자"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12.65 10A5.99 5.99 0 0 0 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 0 0 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg></button>' : ""}
       </div>
     </div>
