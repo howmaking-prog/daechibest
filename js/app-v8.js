@@ -6,7 +6,7 @@ const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_PASS_DEFAULT = "best1369";
 const ADMIN_SESSION_KEY = "daechibest_admin_session";
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
-const ASSET_VER = window.SITE_VER || "63";
+const ASSET_VER = window.SITE_VER || "65";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
 const REPO_RAW_URL = "https://raw.githubusercontent.com/howmaking-prog/daechibest/main/data/site.json";
@@ -21,7 +21,7 @@ const DEFAULT_CONTENT = {
   logoImage: DEFAULT_LOGO,
   heroSlogan: "대치동의 기준이 되는 영어",
   heroSub: "초등부터 고등까지, 실력과 자신감을 함께 키우는 대치베스트 어학원입니다. 소수 정예 수업과 체계적인 레벨 관리로 한 명 한 명의 성장을 책임집니다.",
-  heroCta: "상담 예약하기",
+  heroCta: "입학 테스트",
   // 메인 오른쪽 패널 문구. 관리자 설정에서 바꿀 수 있습니다.
   heroPanelTitle: "Trust. Proven. Growth.",
   heroPanelSub: "대치동 영어 교육의 기본을 지키며, 학생의 다음 단계를 설계합니다.",

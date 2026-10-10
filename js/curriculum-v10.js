@@ -11,7 +11,8 @@ const DEFAULT_CURRICULUM = {
         kicker: "Elementary",
         title: "읽기와 어휘 습관부터 세우는 초등 영어",
         sub: "초등 3–6학년, 문법 용어보다 문장이 만들어지는 감각을 익혀 중등 내신으로 자연스럽게 연결합니다.",
-        cta: "상담 예약하기",
+        cta: "입학 테스트",
+        ctaLink: "https://forms.gle/56UrF6DMBsJvN71w8",
         note: "초등부 입학은 레벨 확인 후 반 배정이 진행됩니다."
       },
       {
@@ -83,7 +84,8 @@ const DEFAULT_CURRICULUM = {
         kicker: "Middle School",
         title: "내신 서술형과 고등 구문을 함께",
         sub: "중1–중3, 학교 시험의 디테일을 놓치지 않으면서 고등 독해에 필요한 문장 구조를 쌓습니다.",
-        cta: "상담 예약하기",
+        cta: "입학 테스트",
+        ctaLink: "https://forms.gle/56UrF6DMBsJvN71w8",
         note: "내신 기간에는 학교별 범위에 맞춰 진도를 조정합니다."
       },
       {
@@ -155,7 +157,8 @@ const DEFAULT_CURRICULUM = {
         kicker: "High School",
         title: "내신 고득점과 수능 독해 속도를 동시에",
         sub: "고1–고3, 학교 시험과 수능을 따로 두지 않고 약점 유형을 분리해 클리닉으로 보완합니다.",
-        cta: "상담 예약하기",
+        cta: "입학 테스트",
+        ctaLink: "https://forms.gle/56UrF6DMBsJvN71w8",
         note: "고3은 수능 직전까지 유형별 약점 관리를 유지합니다."
       },
       {
@@ -702,7 +705,7 @@ const renderSlides = (data) => {
           <h1>${escapeHtml(slide.title)}</h1>
           <p>${escapeHtml(slide.sub)}</p>
           <div class="hero-actions">
-            <a class="btn-primary" href="${escapeHtml(slide.ctaLink || "index.html#contact")}">${escapeHtml(slide.cta)}</a>
+            <a class="btn-primary" href="${escapeHtml(slide.ctaLink || "index.html#contact")}"${/^https?:\/\//i.test(slide.ctaLink || "") ? ' target="_blank" rel="noopener noreferrer"' : ""}>${escapeHtml(slide.cta)}</a>
           </div>
         </div>
       </div>
@@ -844,8 +847,8 @@ const emptySlide = () => ({
   kicker: "",
   title: "",
   sub: "",
-  cta: "상담 예약하기",
-  ctaLink: "index.html#contact",
+  cta: "입학 테스트",
+  ctaLink: "https://forms.gle/56UrF6DMBsJvN71w8",
   note: ""
 });
 
@@ -1130,7 +1133,7 @@ const rebuildSlidesAdmin = (form) => {
       <div class="field"><label>제목</label><input name="slideTitle" /></div>
       <div class="field"><label>설명</label><textarea name="slideSub"></textarea></div>
       <div class="field"><label>하단 안내 문구</label><input name="slideNote" /></div>
-      <div class="field"><label>버튼 문구</label><input name="slideCta" placeholder="상담 예약하기" /></div>
+      <div class="field"><label>버튼 문구</label><input name="slideCta" placeholder="입학 테스트" /></div>
       <div class="field"><label>버튼 링크</label><input name="slideCtaLink" placeholder="index.html#contact" /></div>
     </div>`;
   if (form.elements.slideKicker) form.elements.slideKicker.value = slide.kicker || "";

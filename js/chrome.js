@@ -8,7 +8,7 @@ const deptNames = {
   schedule: "시간표"
 };
 
-const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "63"}`;
+const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "65"}`;
 
 const header = () => {
   const page = document.body.dataset.page || "home";
@@ -51,7 +51,7 @@ const header = () => {
           </li>
           <li><a href="${sectionHref("contact")}">오시는 길</a></li>
         </ul>
-        <a class="header-cta" data-phone-link href="tel:02-556-3510">${home ? "<span>상담 문의</span>" : "상담 문의"}</a>
+        <a class="header-cta" href="https://forms.gle/56UrF6DMBsJvN71w8" target="_blank" rel="noopener noreferrer">${home ? "<span>입학 테스트</span>" : "입학 테스트"}</a>
       </nav>
     </div>
   </header>`;
