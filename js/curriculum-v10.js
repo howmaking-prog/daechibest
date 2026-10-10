@@ -367,7 +367,8 @@ const writeUnifiedCurriculum = (curriculum) => {
   }
   const payload = {
     v: prev.v || 6,
-    updatedAt: Date.now(),
+    // 화면을 열 때마다 시각을 올리면, 휴대폰이 서버의 새 저장을 오래된 것으로 무시합니다.
+    updatedAt: Number(prev.updatedAt) || 0,
     homepage: prev.homepage || null,
     curriculum,
     homepageUpdatedAt: prev.homepageUpdatedAt || 0,
@@ -1733,7 +1734,11 @@ const ensureNoticeTailwind = () => {
   // 라이브러리가 준비된 뒤에 설정을 넣어야 색·여백 클래스가 만들어집니다.
   script.onload = () => {
     if (!window.tailwind) return;
-    window.tailwind.config = { corePlugins: { preflight: false } };
+    window.tailwind.config = {
+      corePlugins: { preflight: false },
+      // 화면 너비와 상관없이 관리자에 올린 HTML이 PC와 같은 크기로 보이게 합니다.
+      theme: { screens: { sm: "0px", md: "0px", lg: "0px", xl: "0px", "2xl": "0px" } }
+    };
   };
   document.head.appendChild(script);
 };

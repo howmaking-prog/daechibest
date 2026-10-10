@@ -6,7 +6,7 @@ const ADMIN_PASS_KEY = "daechibest_admin_pass";
 const ADMIN_PASS_DEFAULT = "best1369";
 const ADMIN_SESSION_KEY = "daechibest_admin_session";
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
-const ASSET_VER = window.SITE_VER || "70";
+const ASSET_VER = window.SITE_VER || "71";
 const DEFAULT_LOGO = `img/logo.png?v=${ASSET_VER}`;
 const REPO_FILE = "data/site.json";
 const REPO_RAW_URL = "https://raw.githubusercontent.com/howmaking-prog/daechibest/main/data/site.json";
@@ -472,15 +472,28 @@ const fetchJson = async (url) => {
 
 const pullRemote = async () => {
   const urls = [REPO_RAW_URL, REPO_FILE];
-  for (const url of urls) {
+  const found = await Promise.all(urls.map(async (url) => {
     try {
-      const parsed = parseRemote(await fetchJson(url));
-      if (parsed) return parsed;
+      return parseRemote(await fetchJson(url));
     } catch (error) {
       console.error("공유 저장 내용을 불러오지 못했습니다.", error);
+      return null;
     }
-  }
-  return null;
+  }));
+  return found
+    .filter(Boolean)
+    .sort((a, b) => (Number(b.updatedAt) || 0) - (Number(a.updatedAt) || 0))[0] || null;
+};
+
+// 전체 시각이 어긋나도, 홈이나 학년 내용이 더 새로우면 그 저장을 받습니다.
+const remoteShouldReplace = (remote, local) => {
+  if (!remote) return false;
+  const localTime = Number(local && local.updatedAt) || 0;
+  if (!localTime || Number(remote.updatedAt) >= localTime) return true;
+  if (Number(remote.homepageUpdatedAt) > Number(local.homepageUpdatedAt || 0)) return true;
+  const remotePages = remote.curriculumUpdatedAt || {};
+  const localPages = (local && local.curriculumUpdatedAt) || {};
+  return Object.keys(remotePages).some((key) => Number(remotePages[key]) > Number(localPages[key] || 0));
 };
 
 const applyRemote = (remote) => {
@@ -1216,16 +1229,20 @@ const init = () => {
     }
     if (typeof window.renderCurriculumPage === "function") window.renderCurriculumPage();
     if (typeof window.initCurriculumUI === "function") window.initCurriculumUI();
-    pullRemote()
-      .then((remote) => {
-        if (!remote) return;
-        const remoteTime = Number(remote.updatedAt) || 0;
-        const localTime = Number(memory.updatedAt) || 0;
-        if (remoteTime >= localTime || !localTime) applyRemote(remote);
-      })
-      .catch((error) => {
-        console.error("공유 저장 내용을 동기화하지 못했습니다.", error);
-      });
+    const syncFromRemote = () => {
+      pullRemote()
+        .then((remote) => {
+          if (remoteShouldReplace(remote, memory)) applyRemote(remote);
+        })
+        .catch((error) => {
+          console.error("공유 저장 내용을 동기화하지 못했습니다.", error);
+        });
+    };
+    syncFromRemote();
+    // 모바일에서 이전 화면이 그대로 다시 열리면 서버 내용을 한 번 더 맞춥니다.
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) syncFromRemote();
+    });
   } catch (error) {
     console.error("페이지를 준비하는 중 문제가 발생했습니다.", error);
   }
