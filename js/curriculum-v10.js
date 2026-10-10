@@ -1274,7 +1274,6 @@ const rebuildNoticesAdmin = (form) => {
       <div class="field"><label>날짜</label><input name="noticeDate" /></div>
       <div class="field">
         <label>본문 <span class="hint" data-notice-body-hint>링크를 넣거나 이미지를 붙여넣을 수 있습니다.</span></label>
-        <label class="field-check notice-html-check"><input type="checkbox" name="noticeHtml" /> HTML 코드</label>
         <div data-notice-rich>
           <div class="notice-editor-tools">
             <button type="button" class="admin-mini-btn" data-notice-link>링크</button>
@@ -1290,7 +1289,10 @@ const rebuildNoticesAdmin = (form) => {
         </div>
         <textarea class="notice-html-source" data-notice-html spellcheck="false" hidden></textarea>
       </div>
-      <label class="field-check"><input type="checkbox" name="noticeImportant" /> 중요 표시</label>
+      <div class="notice-flags">
+        <label class="field-check"><input type="checkbox" name="noticeImportant" /> 중요 표시</label>
+        <label class="field-check"><input type="checkbox" name="noticeHtml" /> HTML 반영</label>
+      </div>
     </div>`;
   if (form.elements.noticeTitle) form.elements.noticeTitle.value = notice.title || "";
   if (form.elements.noticeDate) form.elements.noticeDate.value = notice.date || "";

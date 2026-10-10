@@ -1467,9 +1467,15 @@
       margin: 14px 0;
       border-radius: 12px;
     }
-    .notice-html-check { margin: 8px 0 10px; }
-    .notice-html-source {
-      min-height: 280px;
+    .notice-flags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 28px;
+      margin-top: 4px;
+    }
+    .field textarea.notice-html-source {
+      min-height: 560px;
       font-family: Consolas, "Courier New", monospace;
       font-size: 13px;
       line-height: 1.55;
