@@ -859,6 +859,7 @@ const emptyNotice = () => ({
   title: "",
   date: "",
   body: "",
+  html: false,
   important: false
 });
 
@@ -955,6 +956,78 @@ const sanitizeNoticeHtml = (html) => {
   return out.innerHTML;
 };
 
+// HTML 코드로 저장한 공지. 글자·꾸미기 태그는 남기고 실행 코드는 뺍니다.
+const NOTICE_HTML_TAGS = new Set([
+  "A", "ABBR", "B", "BLOCKQUOTE", "BR", "CAPTION", "CODE", "COL", "COLGROUP",
+  "DD", "DIV", "DL", "DT", "EM", "FIGCAPTION", "FIGURE", "H1", "H2", "H3", "H4", "H5", "H6",
+  "HR", "I", "IMG", "LI", "MARK", "OL", "P", "PRE", "S", "SMALL", "SPAN", "STRONG",
+  "SUB", "SUP", "TABLE", "TBODY", "TD", "TFOOT", "TH", "THEAD", "TR", "U", "UL",
+  "SECTION", "ARTICLE", "HEADER", "FOOTER", "NAV", "ASIDE"
+]);
+const NOTICE_HTML_ATTRS = new Set([
+  "class", "id", "title", "alt", "colspan", "rowspan", "width", "height", "role", "align", "scope"
+]);
+
+const isSafeNoticeStyle = (value) => {
+  const style = String(value || "");
+  if (style.length > 4000) return false;
+  return !/expression\s*\(|javascript:|url\s*\(\s*['"]?\s*javascript/i.test(style);
+};
+
+const isSafeNoticeHref = (value) => {
+  const href = String(value || "").trim();
+  if (!href) return false;
+  if (/^mailto:[^\s]+$/i.test(href)) return true;
+  return isSafeBannerLink(href);
+};
+
+const sanitizeNoticeDocument = (html) => {
+  const doc = new DOMParser().parseFromString(`<div>${html || ""}</div>`, "text/html");
+  const root = doc.body.firstElementChild;
+  if (!root) return "";
+  const out = document.createElement("div");
+  const walk = (node, parent) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      parent.appendChild(document.createTextNode(node.textContent || ""));
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const tag = node.tagName;
+    if (!NOTICE_HTML_TAGS.has(tag)) {
+      walkNoticeChildren(node, parent, walk);
+      return;
+    }
+    const el = document.createElement(tag.toLowerCase());
+    [...node.attributes].forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      if (name.startsWith("on")) return;
+      if (name === "style") {
+        if (isSafeNoticeStyle(attr.value)) el.setAttribute("style", attr.value);
+        return;
+      }
+      if (name === "href") {
+        const href = attr.value.trim();
+        if (!isSafeNoticeHref(href)) return;
+        el.setAttribute("href", href);
+        if (/^https?:/i.test(href)) {
+          el.setAttribute("target", "_blank");
+          el.setAttribute("rel", "noopener noreferrer");
+        }
+        return;
+      }
+      if (name === "src") {
+        if (tag === "IMG" && isSafeNoticeImage(attr.value.trim())) el.setAttribute("src", attr.value.trim());
+        return;
+      }
+      if (name.startsWith("aria-") || NOTICE_HTML_ATTRS.has(name)) el.setAttribute(name, attr.value);
+    });
+    if (tag !== "BR" && tag !== "HR" && tag !== "IMG" && tag !== "COL") walkNoticeChildren(node, el, walk);
+    parent.appendChild(el);
+  };
+  walkNoticeChildren(root, out, walk);
+  return out.innerHTML.trim();
+};
+
 const plainNoticeToHtml = (text) => {
   const escaped = escapeHtml(text);
   const linked = escaped.replace(/https?:\/\/[^\s<]+/g, (url) => {
@@ -966,11 +1039,39 @@ const plainNoticeToHtml = (text) => {
   return linked.replace(/\n/g, "<br>");
 };
 
-const noticeBodyHtml = (body) => {
+const noticeBodyHtml = (body, htmlMode) => {
   const raw = String(body || "");
   if (!raw.trim()) return "";
+  if (htmlMode) return sanitizeNoticeDocument(raw);
   if (NOTICE_RICH.test(raw)) return sanitizeNoticeHtml(raw);
   return plainNoticeToHtml(raw);
+};
+
+// 편집기에 글자로 들어 있는 HTML 소스를 코드창으로 옮깁니다.
+const noticeSourceFromEditor = (editor) => {
+  if (!editor) return "";
+  const text = editor.innerText.replace(/\u00a0/g, " ");
+  if (text.includes("<")) return text.trim();
+  const box = document.createElement("textarea");
+  box.innerHTML = editor.innerHTML;
+  return box.value.trim();
+};
+
+const applyNoticeHtmlMode = (form, on, transfer) => {
+  const rich = form.querySelector("[data-notice-rich]");
+  const area = form.querySelector("[data-notice-html]");
+  const editor = form.querySelector("[data-notice-editor]");
+  const hint = form.querySelector("[data-notice-body-hint]");
+  if (rich) rich.hidden = !!on;
+  if (area) area.hidden = !on;
+  if (hint) {
+    hint.textContent = on
+      ? "체크한 글은 HTML이 게시물에 적용됩니다."
+      : "링크를 넣거나 이미지를 붙여넣을 수 있습니다.";
+  }
+  if (!transfer) return;
+  if (on && area && editor) area.value = noticeSourceFromEditor(editor);
+  if (!on && area && editor) editor.textContent = area.value;
 };
 
 const noticeEditorHtml = (form) => {
@@ -1098,11 +1199,15 @@ const readNoticesFromForm = (form) => {
   if (!block) return notices;
   const i = Number(block.dataset.noticeBlock);
   const previous = notices[i] || {};
+  const htmlMode = !!form.elements.noticeHtml?.checked;
   notices[i] = {
     id: previous.id || newNoticeId(),
     title: withFormText(form, "noticeTitle", ""),
     date: withFormText(form, "noticeDate", ""),
-    body: noticeEditorHtml(form),
+    body: htmlMode
+      ? sanitizeNoticeDocument(form.querySelector("[data-notice-html]")?.value || "")
+      : noticeEditorHtml(form),
+    html: htmlMode,
     important: !!form.elements.noticeImportant?.checked
   };
   return notices;
@@ -1168,25 +1273,37 @@ const rebuildNoticesAdmin = (form) => {
       <div class="field"><label>제목</label><input name="noticeTitle" /></div>
       <div class="field"><label>날짜</label><input name="noticeDate" /></div>
       <div class="field">
-        <label>본문 <span class="hint">링크를 넣거나 이미지를 붙여넣을 수 있습니다.</span></label>
-        <div class="notice-editor-tools">
-          <button type="button" class="admin-mini-btn" data-notice-link>링크</button>
-          <button type="button" class="admin-mini-btn" data-notice-image>이미지</button>
-          <input type="file" accept="image/png,image/jpeg,image/webp" data-notice-image-file hidden />
+        <label>본문 <span class="hint" data-notice-body-hint>링크를 넣거나 이미지를 붙여넣을 수 있습니다.</span></label>
+        <label class="field-check notice-html-check"><input type="checkbox" name="noticeHtml" /> HTML 코드</label>
+        <div data-notice-rich>
+          <div class="notice-editor-tools">
+            <button type="button" class="admin-mini-btn" data-notice-link>링크</button>
+            <button type="button" class="admin-mini-btn" data-notice-image>이미지</button>
+            <input type="file" accept="image/png,image/jpeg,image/webp" data-notice-image-file hidden />
+          </div>
+          <div class="notice-link-row" data-notice-link-row hidden>
+            <input data-notice-link-url placeholder="https:// 주소" />
+            <input data-notice-link-text placeholder="표시할 글자 (선택)" />
+            <button type="button" class="admin-mini-btn" data-notice-link-ok>넣기</button>
+          </div>
+          <div class="notice-editor" data-notice-editor contenteditable="true" role="textbox" aria-multiline="true"></div>
         </div>
-        <div class="notice-link-row" data-notice-link-row hidden>
-          <input data-notice-link-url placeholder="https:// 주소" />
-          <input data-notice-link-text placeholder="표시할 글자 (선택)" />
-          <button type="button" class="admin-mini-btn" data-notice-link-ok>넣기</button>
-        </div>
-        <div class="notice-editor" data-notice-editor contenteditable="true" role="textbox" aria-multiline="true"></div>
+        <textarea class="notice-html-source" data-notice-html spellcheck="false" hidden></textarea>
       </div>
       <label class="field-check"><input type="checkbox" name="noticeImportant" /> 중요 표시</label>
     </div>`;
   if (form.elements.noticeTitle) form.elements.noticeTitle.value = notice.title || "";
   if (form.elements.noticeDate) form.elements.noticeDate.value = notice.date || "";
   const editor = form.querySelector("[data-notice-editor]");
-  if (editor) editor.innerHTML = noticeBodyHtml(notice.body || "");
+  const htmlMode = !!notice.html;
+  if (form.elements.noticeHtml) form.elements.noticeHtml.checked = htmlMode;
+  applyNoticeHtmlMode(form, htmlMode, false);
+  if (htmlMode) {
+    const area = form.querySelector("[data-notice-html]");
+    if (area) area.value = notice.body || "";
+  } else if (editor) {
+    editor.innerHTML = noticeBodyHtml(notice.body || "");
+  }
   if (form.elements.noticeImportant) form.elements.noticeImportant.checked = !!notice.important;
 };
 
@@ -1351,6 +1468,10 @@ const bindSlideNoticeAdmin = (form) => {
       addNoticeImageFile(form, file);
     });
     noticesWrap.addEventListener("change", (event) => {
+      if (event.target && event.target.name === "noticeHtml") {
+        applyNoticeHtmlMode(form, event.target.checked, true);
+        return;
+      }
       const input = event.target.closest("[data-notice-image-file]");
       if (!input || !input.files || !input.files[0]) return;
       const file = input.files[0];
@@ -1405,6 +1526,7 @@ const pageFingerprint = (page, key) => {
       title: (item.title || "").trim(),
       date: normalizeNoticeDate(item.date) || String(item.date || "").trim(),
       body: item.body || "",
+      html: !!item.html,
       important: !!item.important
     }));
   const slides = (normalized.slides || []).map((item) => ({
@@ -1600,6 +1722,20 @@ const DEPT_FILES = {
   high: "high.html"
 };
 
+// HTML 공지의 클래스(색, 여백)가 보이게 Tailwind를 공지 페이지에만 붙입니다. 사이트 기본 글꼴은 유지합니다.
+const ensureNoticeTailwind = () => {
+  if (document.querySelector("script[data-notice-tailwind]")) return;
+  const script = document.createElement("script");
+  script.src = "https://cdn.tailwindcss.com";
+  script.dataset.noticeTailwind = "1";
+  // 라이브러리가 준비된 뒤에 설정을 넣어야 색·여백 클래스가 만들어집니다.
+  script.onload = () => {
+    if (!window.tailwind) return;
+    window.tailwind.config = { corePlugins: { preflight: false } };
+  };
+  document.head.appendChild(script);
+};
+
 // 공지 고유 번호로 상세 페이지를 채웁니다. 예전 주소의 순서 번호도 그대로 엽니다.
 const renderNoticePage = () => {
   const root = document.querySelector(".notice-page");
@@ -1643,7 +1779,11 @@ const renderNoticePage = () => {
   if (kicker) kicker.textContent = item.important ? "중요 공지" : "공지사항";
   if (titleEl) titleEl.textContent = item.title;
   if (dateEl) dateEl.textContent = item.date || "";
-  if (bodyEl) bodyEl.innerHTML = noticeBodyHtml(item.body || "");
+  if (bodyEl) {
+    bodyEl.classList.toggle("notice-html", !!item.html);
+    bodyEl.innerHTML = noticeBodyHtml(item.body || "", !!item.html);
+    if (item.html) ensureNoticeTailwind();
+  }
   document.title = `${item.title} | ${labels[dept] || "공지"} | 대치베스트 어학원`;
 };
 

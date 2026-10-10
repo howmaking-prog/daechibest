@@ -1467,6 +1467,29 @@
       margin: 14px 0;
       border-radius: 12px;
     }
+    .notice-html-check { margin: 8px 0 10px; }
+    .notice-html-source {
+      min-height: 280px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    /* HTML 공지는 입력한 클래스·여백이 보이도록 본문 기본 글자 크기를 덮지 않습니다. */
+    .notice-page-body.notice-html {
+      color: unset;
+      font-size: unset;
+      line-height: unset;
+    }
+    .notice-page-body.notice-html :is(p, h1, h2, h3, h4, h5, h6, ul, ol, li) {
+      margin: unset;
+      font-size: unset;
+      line-height: unset;
+      color: unset;
+    }
+    .notice-page-body.notice-html img {
+      margin: unset;
+      border-radius: unset;
+    }
     @media (max-width: 640px) {
       .notice-page { padding: 28px 16px 64px; }
       .notice-article { padding: 28px 20px 32px; }
