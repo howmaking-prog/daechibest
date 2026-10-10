@@ -1433,7 +1433,7 @@
     }
     .notice-back:hover { color: var(--blue-600); }
     .notice-article .section-kicker { color: var(--gold); }
-    .notice-article h1 {
+    .notice-article > h1 {
       font-size: clamp(26px, 4vw, 36px);
       color: var(--navy-900);
       letter-spacing: -0.04em;
@@ -1480,17 +1480,11 @@
       font-size: 13px;
       line-height: 1.55;
     }
-    /* HTML 공지는 입력한 클래스·여백이 보이도록 본문 기본 글자 크기를 덮지 않습니다. */
+    /* HTML 공지의 h1·h2·h3와 글자 크기 클래스가 게시물 제목 스타일에 덮이지 않게 합니다. */
     .notice-page-body.notice-html {
       color: unset;
       font-size: unset;
       line-height: unset;
-    }
-    .notice-page-body.notice-html :is(p, h1, h2, h3, h4, h5, h6, ul, ol, li) {
-      margin: unset;
-      font-size: unset;
-      line-height: unset;
-      color: unset;
     }
     .notice-page-body.notice-html img {
       margin: unset;
