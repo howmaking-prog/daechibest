@@ -10,7 +10,7 @@
       --gold: #c4a35a;
       --gold-soft: #e8d7a8;
       /* 커리큘럼 배너 버튼, 슬라이드 점, 하단 안내 띠 */
-      --dept-accent: #bebfc5;
+      --dept-accent: #1d3043;
       --ink: #142033;
       --muted: #5b6b7c;
       --line: #e4e9f0;
@@ -1104,8 +1104,8 @@
     .slide-copy .eyebrow::before { background: #7eb6ea; }
     .slide-copy .btn-primary {
       background: var(--dept-accent);
-      color: var(--navy-950);
-      box-shadow: 0 10px 24px rgba(140, 142, 150, 0.28);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(29, 48, 67, 0.35);
     }
     .slide-copy h1 {
       font-size: clamp(30px, 4vw, 48px);
@@ -1125,7 +1125,7 @@
       right: 0;
       bottom: 0;
       background: var(--dept-accent);
-      color: var(--navy-950);
+      color: #fff;
       font-size: 14px;
       font-weight: 800;
       text-align: center;
@@ -1164,7 +1164,12 @@
       background: rgba(255,255,255,0.35);
       cursor: pointer;
     }
-    .slider-dots button.is-active { background: var(--dept-accent); width: 22px; border-radius: 999px; }
+    .slider-dots button.is-active {
+      background: var(--dept-accent);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.75);
+      width: 22px;
+      border-radius: 999px;
+    }
 
     /* 초·중·고와 그 안의 시간표·공지 페이지 배경. 배너 슬라이드는 자체 배경을 유지합니다. */
     body[data-page="elementary"],

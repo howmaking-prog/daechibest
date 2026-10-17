@@ -8,7 +8,7 @@ const deptNames = {
   schedule: "시간표"
 };
 
-const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "75"}`;
+const logoSrc = () => `img/logo.png?v=${window.SITE_VER || "76"}`;
 
 const header = () => {
   const page = document.body.dataset.page || "home";
