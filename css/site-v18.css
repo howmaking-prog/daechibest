@@ -1439,6 +1439,20 @@
       border-radius: 22px;
       padding: 36px 32px 40px;
     }
+    /* 공지는 흰 카드를 두지 않고 페이지 배경 위에 바로 보여 줍니다. */
+    body[data-page="notice"] .notice-article {
+      background: transparent;
+      border-radius: 0;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    body[data-page="notice"] .notice-page-body.notice-html > :first-child {
+      background: transparent !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      overflow: visible !important;
+    }
     .notice-back {
       display: inline-flex;
       margin-bottom: 22px;
@@ -1510,8 +1524,8 @@
     @media (max-width: 640px) {
       .notice-page { padding: 28px 16px 64px; }
       .notice-article { padding: 28px 20px 32px; }
-      /* 공지 본문만 좌우를 줄여, 좁은 화면에서 내용이 더 넓게 보이게 합니다. */
-      body[data-page="notice"] .notice-article { padding-left: 12px; padding-right: 12px; }
+      body[data-page="notice"] .notice-page { padding-left: 16px; padding-right: 16px; }
+      body[data-page="notice"] .notice-article { padding-left: 0; padding-right: 0; }
       body[data-page="notice"] .notice-page-body.notice-html > :first-child {
         padding-left: 0 !important;
         padding-right: 0 !important;
