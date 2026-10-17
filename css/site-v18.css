@@ -1166,10 +1166,12 @@
     }
     .slider-dots button.is-active { background: var(--dept-accent); width: 22px; border-radius: 999px; }
 
-    /* 초·중·고 페이지 본문 배경. 배너 슬라이드는 자체 배경을 유지합니다. */
+    /* 초·중·고와 그 안의 시간표·공지 페이지 배경. 배너 슬라이드는 자체 배경을 유지합니다. */
     body[data-page="elementary"],
     body[data-page="middle"],
-    body[data-page="high"] {
+    body[data-page="high"],
+    body[data-page="notice"],
+    body[data-page="schedule"] {
       background: #f5f5f5;
       color: var(--navy-900);
     }
@@ -1441,6 +1443,8 @@
     }
     .notice-back:hover { color: var(--blue-600); }
     .notice-article .section-kicker { color: var(--gold); }
+    body[data-page="notice"] .notice-article .section-kicker,
+    body[data-page="schedule"] .notice-article .section-kicker { color: var(--navy-700); }
     .notice-article > h1 {
       font-size: clamp(26px, 4vw, 36px);
       color: var(--navy-900);
